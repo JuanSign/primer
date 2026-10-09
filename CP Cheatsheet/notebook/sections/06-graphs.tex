@@ -1,1 +1,17 @@
 \section{Graphs}
+
+\topic{Strongly Connected Components}[n + m]
+\cppfile[title=SCC,usage={SCC s(g); s.comp[v], s.k},
+  funcs={SCC,dfs}]{code/graph/scc.cpp}
+
+\topic{2-SAT}[n + m]
+\cppfile[title=TwoSat,usage={needs SCC},
+  funcs={TwoSat,either,imply,solve}]{code/graph/two-sat.cpp}
+
+\topic{Bridges, Cut Vertices, Blocks}[n + m]
+\cppfile[title=Biconnected,usage={addEdge all, then run()},
+  funcs={Biconnected,addEdge,run,dfs,twoEdge}]{code/graph/biconnected.cpp}
+
+\topic{Euler Path}[n + m]
+\cppfile[title=euler,usage={directed or undirected},
+  funcs={euler}]{code/graph/euler.cpp}
