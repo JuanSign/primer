@@ -855,3 +855,395 @@ Finally the lazy part, which split and join have been calling all along.
 \begin{pitfall}
 Never keep a \code|Node&| across a call to \code|make|, never read the children of a node before pushing it, and never reverse with a merge that depends on order. When the positions never change, use a segment tree instead, which is several times faster.
 \end{pitfall}
+
+\topic{Persistent Segment Tree}[\log n]
+
+\begin{problem}
+Given an array \(a\) of length \(n\), we can do the following in \(\bigO{\log n}\).
+\begin{itemize}
+\item Update one element or query a range, like a segment tree.
+\item Every update makes a new version of the array and keeps the old one.\\
+An update can start from any old version.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm]
+  % version 1 grows from version 0, versions 2 and 3 both grow from 1
+  \foreach \v [count=\i from 0] in {0,0,0,0}
+    \node[cell] at (\i, 0) {\v};
+  \node[note,anchor=east] at (-0.8, 0) {version 0};
+  \foreach \v [count=\i from 0] in {0,3,0,0}
+    \node[cell] at (\i, -2.4) {\v};
+  \node[cell,pb] at (1, -2.4) {3};
+  \node[note,anchor=east] at (-0.8, -2.4) {version 1};
+  \draw[->,muted,thick] (1.5, -0.6) -- (1.5, -1.8)
+    node[midway,right,note] {\texttt{a[1] += 3}};
+  \foreach \v [count=\i from 0] in {0,3,0,2}
+    \node[cell] at (\i - 3.5, -4.8) {\v};
+  \node[cell,pb] at (-0.5, -4.8) {2};
+  \node[note] at (-2, -5.7) {version 2};
+  \foreach \v [count=\i from 0] in {4,3,0,0}
+    \node[cell] at (\i + 3.5, -4.8) {\v};
+  \node[cell,pb] at (3.5, -4.8) {4};
+  \node[note] at (5, -5.7) {version 3};
+  \draw[->,muted,thick] (0.9, -3) -- (-1.6, -4.2)
+    node[midway,above left,note] {\texttt{a[3] += 2}};
+  \draw[->,muted,thick] (2.1, -3) -- (4.6, -4.2)
+    node[midway,above right,note] {\texttt{a[0] += 4}};
+\end{tikzpicture}
+\end{center}
+\end{problem}
+
+\subsubsection{A segment tree forgets}
+To add \(x\) to \(a_i\), a segment tree walks from the root down to the leaf of \(i\) and adds \(x\) to the sum at every node on the way. Those are exactly the nodes whose blocks contain \(i\). Each new sum is written over the old one, so once the update is done the old array is gone for good.
+
+\begin{center}
+\begin{tikzpicture}[tree,level 1/.style={sibling distance=28mm},
+    gone/.style={draw=muted,densely dashed,text=muted}]
+  \begin{scope}[edge from parent/.style={draw=muted,densely dashed}]
+    \node[tn,gone] at (0, 0) {0}
+      child {node[gone] {0}
+        child {node[gone,label={[note]below:0}] {0}}
+        child {node[gone,label={[note]below:1}] {0}}}
+      child {node[gone] {0}
+        child {node[gone,label={[note]below:2}] {0}}
+        child {node[gone,label={[note]below:3}] {0}}};
+  \end{scope}
+  \node[note] at (0, -34mm) {before, now gone};
+  \draw[->,muted,thick] (30mm, -11mm) -- (44mm, -11mm)
+    node[midway,above,note] {\texttt{a[1] += 3}};
+  \node[tn,hot] at (74mm, 0) {3}
+    child {node[hot] {3}
+      child {node[label={[note]below:0}] {0}}
+      child {node[hot,label={[note]below:1}] {3}}}
+    child {node {0}
+      child {node[label={[note]below:2}] {0}}
+      child {node[label={[note]below:3}] {0}}};
+  \node[note] at (74mm, -34mm) {after};
+\end{tikzpicture}
+\end{center}
+The red nodes are the path. Their old sums are overwritten and lost.
+
+\subsubsection{Copy the path}
+The obvious way to keep the old array is to copy all of it before every update, which costs \(\bigO{n}\) each time. A persistent segment tree copies only the path. It never writes over a node. Instead it makes a copy of every node on the path and puts the new sum in the copy. Each copy keeps its old child that is off the path, so everything off the path is shared by the two versions instead of copied.
+
+\begin{center}
+\begin{tikzpicture}[tree,level 1/.style={sibling distance=28mm}]
+  \node[tn] at (0, 0) {0}
+    child {node {0}
+      child {node[label={[note]below:0}] {0}}
+      child {node[label={[note]below:1}] {0}}}
+    child {node {0}
+      child {node[label={[note]below:2}] {0}}
+      child {node[label={[note]below:3}] {0}}};
+  \node[note] at (0, -34mm) {version 0, still there};
+  \draw[->,muted,thick] (30mm, -11mm) -- (44mm, -11mm)
+    node[midway,above,note] {\texttt{a[1] += 3}};
+  \node[tn,pb] at (74mm, 0) {3}
+    child {node[pb] {3}
+      child {node[label={[note]below:0}] {0}}
+      child {node[pb,label={[note]below:1}] {3}}}
+    child {node {0}
+      child {node[label={[note]below:2}] {0}}
+      child {node[label={[note]below:3}] {0}}};
+  \node[note] at (74mm, -34mm) {version 1};
+\end{tikzpicture}
+\end{center}
+The amber nodes are the copies. The white nodes of version~1 are not copies at all. They are the very same nodes that version~0 uses.
+
+Version~0 starts at the old root and meets only old nodes, so it reads exactly as before. Version~1 starts at the new root. So a version is nothing more than a root, and an update costs one path, which is \(\bigO{\log n}\) new nodes.
+
+\subsubsection{Storing the nodes}
+All nodes live in one big array \code|t|, in the order they were made. A node stores its sum and the indices of its two children. So a child is just a number, and two parents share a child by storing the same number. An update appends the copies of its path to the end of \code|t| and returns the index of the new root. That index is the whole version, so we keep the roots in a list where \code|root[v]| is the root of version~\(v\).
+
+So far version~0 was a full tree of zeros, built before the first update. The code never builds it. Instead \code|t[0]| is a node with sum~0 whose two children are node~0 itself. Walking down from node~0 never meets anything but zeros, however deep it goes. So node~0 acts like a tree of zeros of any size, and version~0 is simply root~0. The first update copies node~0 along its path, and every child it does not replace is still node~0.
+
+\begin{center}
+\begin{tikzpicture}[tree,level 1/.style={sibling distance=28mm},
+    id/.style={label={[note,font=\ttfamily\footnotesize]#1}}]
+  \node[tn,pc] (z) at (0, -11mm) {0};
+  \draw[->,muted,thick] (z) to[out=250,in=190,looseness=12]
+    node[pos=0.5,below left,note] {left} (z);
+  \draw[->,muted,thick] (z) to[out=290,in=350,looseness=12]
+    node[pos=0.5,below right,note] {right} (z);
+  \node[note] at (0, -30mm) {node 0};
+  \node[tn,pb,id={right:t[1]}] at (60mm, 0) {3}
+    child {node[pb,id={left:t[2]}] {3}
+      child {node[pc,id={left:t[0]}] {0}}
+      child {node[pb,id={right:t[3]}] {3}}}
+    child {node[pc,id={right:t[0]}] {0}};
+  \node[note] at (60mm, -30mm) {version 1, built from root 0};
+  % the same nodes, as they sit in memory
+  \begin{scope}[x=6.5mm,y=6.5mm,xshift=-3.25mm,yshift=-54mm]
+    \node[note] at (0.5, 1.8) {\texttt{root}};
+    \foreach \v/\u/\c in {0/0/pc, 1/1/pb} {
+      \node[note] at (\v, 0.9) {\v};
+      \node[cell,\c] at (\v, 0) {\u};
+    }
+  \end{scope}
+  \begin{scope}[x=6.5mm,y=6.5mm,xshift=50.25mm,yshift=-54mm]
+    \node[note] at (1.5, 1.8) {\texttt{t}};
+    \foreach \u/\l/\r/\s/\c in {0/0/0/0/pc, 1/2/0/3/pb, 2/0/3/3/pb,
+        3/0/0/3/pb} {
+      \node[note] at (\u, 0.9) {\u};
+      \node[cell,\c] at (\u, 0) {\l};
+      \node[cell,\c] at (\u, -1) {\r};
+      \node[cell,\c] at (\u, -2) {\s};
+    }
+    \node[note,anchor=east] at (-0.6, 0) {\texttt{l}};
+    \node[note,anchor=east] at (-0.6, -1) {\texttt{r}};
+    \node[note,anchor=east] at (-0.6, -2) {\texttt{s}};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The grey nodes are all the same node~0. Node~1 is the root of version~1. Its left child is node~2, and its right child is node~0, which stands for the block \([2, 4)\) full of zeros. So version~1 costs three new nodes and nothing else.
+
+\subsubsection{Branching}
+Since nothing is ever written over, every root ever made still works. An update can start from any of them, even an old one, and it simply builds another path. Here are the versions from the box. Every node is colored by the update that made it, amber for version~1, blue for version~2 and teal for version~3. Grey nodes are node~0.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=20mm},
+    level 2/.style={sibling distance=10mm},
+    pd/.style={fill=defcolor!18}]
+  \node[tn,pb] at (0, 0) {3}
+    child {node[pb] {3}
+      child {node[pc,label={[note]below:0}] {0}}
+      child {node[pb,label={[note]below:1}] {3}}}
+    child {node[pc] {0}
+      child {node[pc,label={[note]below:2}] {0}}
+      child {node[pc,label={[note]below:3}] {0}}};
+  \node[note] at (0, -34mm) {version 1};
+  \node[tn,pa] at (50mm, 0) {5}
+    child {node[pb] {3}
+      child {node[pc,label={[note]below:0}] {0}}
+      child {node[pb,label={[note]below:1}] {3}}}
+    child {node[pa] {2}
+      child {node[pc,label={[note]below:2}] {0}}
+      child {node[pa,label={[note]below:3}] {2}}};
+  \node[note] at (50mm, -34mm) {version 2, from version 1};
+  \node[tn,pd] at (100mm, 0) {7}
+    child {node[pd] {7}
+      child {node[pd,label={[note]below:0}] {4}}
+      child {node[pb,label={[note]below:1}] {3}}}
+    child {node[pc] {0}
+      child {node[pc,label={[note]below:2}] {0}}
+      child {node[pc,label={[note]below:3}] {0}}};
+  \node[note] at (100mm, -34mm) {version 3, from version 1};
+\end{tikzpicture}
+\end{center}
+Versions~2 and~3 both grew from version~1, and both reuse its amber nodes. Still, neither can see what the other changed. The new nodes of version~2 hang below its own root only. No path from the root of version~3 ever reaches them.
+
+In memory it is still one array. Each update appended its three nodes, and the list of roots grew by one.
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm,pd/.style={fill=defcolor!18}]
+  \node[note] at (4.5, 1.8) {\texttt{t}};
+  \foreach \u/\l/\r/\s/\c in {0/0/0/0/pc, 1/2/0/3/pb, 2/0/3/3/pb,
+      3/0/0/3/pb, 4/2/5/5/pa, 5/0/6/2/pa, 6/0/0/2/pa, 7/8/0/7/pd,
+      8/9/3/7/pd, 9/0/0/4/pd} {
+    \node[note] at (\u, 0.9) {\u};
+    \node[cell,\c] at (\u, 0) {\l};
+    \node[cell,\c] at (\u, -1) {\r};
+    \node[cell,\c] at (\u, -2) {\s};
+  }
+  \node[note,anchor=east] at (-0.6, 0) {\texttt{l}};
+  \node[note,anchor=east] at (-0.6, -1) {\texttt{r}};
+  \node[note,anchor=east] at (-0.6, -2) {\texttt{s}};
+  \begin{scope}[xshift=13*6.5mm]
+    \node[note] at (1.5, 1.8) {\texttt{root}};
+    \foreach \v/\u/\c in {0/0/pc, 1/1/pb, 2/4/pa, 3/7/pd} {
+      \node[note] at (\v, 0.9) {\v};
+      \node[cell,\c] at (\v, 0) {\u};
+    }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+Node~4, the root of version~2, keeps node~2 as its left child. Node~8 in version~3 keeps node~3 as its right child. Those are the shared amber nodes, and they are shared simply because two nodes store the same index.
+
+\subsubsection{Query}
+A query on version~\(v\) is the usual segment tree query, started at \code|root[v]|. It only reads nodes and never changes them, so every version can be queried at any time and in any order.
+
+\subsubsection{The \(k\)th smallest}
+The classic use of all this is finding the \(k\)th smallest element of a subarray \([l, r)\), with \(k\) counted from 0. Assume every value lies in \([0, m)\). Any array gets there by replacing each value with its rank among the distinct values, which keeps the order and makes \(m\) at most \(n\).
+
+The trick is to build the tree over values instead of positions. Leaf \(x\) counts how many times \(x\) appears, so a node counts the elements whose values fall in its block. Start from version~0, where every count is zero, and add the elements one by one. Adding \(a_i\) adds 1 at leaf \(a_i\), so version~\(i\) counts the values in the prefix \([0, i)\).
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm]
+  \foreach \v [count=\i from 0] in {3,0,2,3,1} {
+    \node[note] at (\i, 0.9) {\i};
+    \node[cell] at (\i, 0) {\v};
+  }
+  \node[note,anchor=east] at (-0.7, 0) {\(a\)};
+  % counts by value, one row per version
+  \begin{scope}[xshift=10*6.5mm]
+    \foreach \x in {0,...,3}
+      \node[note] at (\x, 0.9) {\x};
+    \node[note,anchor=east] at (-0.7, 0.9) {value};
+    \foreach \v/\a/\b/\c/\d in {0/0/0/0/0, 1/0/0/0/1, 2/1/0/0/1,
+        3/1/0/1/1, 4/1/0/1/2, 5/1/1/1/2} {
+      \node[note,anchor=east] at (-0.7, -\v) {version \v};
+      \node[cell] at (0, -\v) {\a};
+      \node[cell] at (1, -\v) {\b};
+      \node[cell] at (2, -\v) {\c};
+      \node[cell] at (3, -\v) {\d};
+    }
+    \foreach \v/\i/\x/\c in {1/0/3/1, 2/1/0/1, 3/2/2/1, 4/3/3/2, 5/4/1/1} {
+      \node[cell,pb] at (\x, -\v) {\c};
+      \node[note,anchor=west] at (3.7, -\v) {adds \(a_{\i} = \x\)};
+    }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Every version is built over the same blocks, so their nodes match up one to one. Subtracting version~\(l\) from version~\(r\) node by node removes the elements before \(l\) from every count. What is left counts exactly the values in \([l, r)\).
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=20mm},
+    level 2/.style={sibling distance=10mm}]
+  \node[tn] at (0, 0) {4}
+    child {node {1}
+      child {node[label={[note]below:0}] {1}}
+      child {node[label={[note]below:1}] {0}}}
+    child {node {3}
+      child {node[label={[note]below:2}] {1}}
+      child {node[label={[note]below:3}] {2}}};
+  \node[note] at (0, -34mm) {version 4};
+  \node[font=\Large,text=muted] at (25mm, -11mm) {\(-\)};
+  \node[tn] at (50mm, 0) {1}
+    child {node {0}
+      child {node[label={[note]below:0}] {0}}
+      child {node[label={[note]below:1}] {0}}}
+    child {node {1}
+      child {node[label={[note]below:2}] {0}}
+      child {node[label={[note]below:3}] {1}}};
+  \node[note] at (50mm, -34mm) {version 1};
+  \node[font=\Large,text=muted] at (75mm, -11mm) {\(=\)};
+  \node[tn] at (100mm, 0) {3}
+    child {node {1}
+      child {node[label={[note]below:0}] {1}}
+      child {node[label={[note]below:1}] {0}}}
+    child {node {2}
+      child {node[label={[note]below:2}] {1}}
+      child {node[label={[note]below:3}] {1}}};
+  \node[note] at (100mm, -34mm) {the values in \([1, 4)\)};
+\end{tikzpicture}
+\end{center}
+The small numbers under the leaves are values now, not positions. The difference has one 0, one 2 and one 3, which are exactly \texttt{0 2 3} from \([1, 4)\).
+
+Now walk down the difference from the root. At each node, let \(c\) be the count of its left half. If \(k < c\), the answer is among the smaller values, so go left. Otherwise the left half holds the \(c\) smallest elements, so skip them, subtract \(c\) from \(k\) and go right. The leaf where the walk ends is the answer. Let's find \(k = 1\) in \([1, 4)\).
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=20mm},
+    level 2/.style={sibling distance=10mm},
+    gone/.style={draw=muted,densely dashed,text=muted},
+    skip/.style={edge from parent/.style={draw=muted,densely dashed}},
+    k/.style={label={[note,text=warncolor]right:\(k = #1\)}}]
+  \node[tn,hot,k=1] at (0, 0) {3}
+    child {node[pb] {1}
+      child {node[label={[note]below:0}] {1}}
+      child {node[label={[note]below:1}] {0}}}
+    child {node {2}
+      child {node[label={[note]below:2}] {1}}
+      child {node[label={[note]below:3}] {1}}};
+  \node[note] at (0, -34mm) {at the root};
+  \node[tn] at (50mm, 0) {3}
+    child[skip] {node[gone] {1}
+      child {node[gone,label={[note]below:0}] {1}}
+      child {node[gone,label={[note]below:1}] {0}}}
+    child {node[hot,k=0] {2}
+      child {node[pb,label={[note]below:2}] {1}}
+      child {node[label={[note]below:3}] {1}}};
+  \node[note] at (50mm, -34mm) {at block \([2, 4)\)};
+  \node[tn] at (100mm, 0) {3}
+    child[skip] {node[gone] {1}
+      child {node[gone,label={[note]below:0}] {1}}
+      child {node[gone,label={[note]below:1}] {0}}}
+    child {node {2}
+      child {node[hot,label={[note]below:2}] {1}}
+      child {node[label={[note]below:3}] {1}}};
+  \node[note] at (100mm, -34mm) {at leaf 2, the answer};
+\end{tikzpicture}
+\end{center}
+At the root \(k = 1\), and the amber left half holds 1 element. Since \(k\) is not below 1, we skip that element and go right with \(k = 0\). At block \([2, 4)\) the left half holds 1 element and \(0 < 1\), so we go left and land on leaf 2. The answer is 2, the middle of \texttt{0 2 3}.
+
+The difference tree is never built. The walk moves down version~\(r\) and version~\(l\) side by side and subtracts their counts at every step. Each step goes one level down, so the whole walk takes \(\bigO{\log m}\).
+
+\subsubsection{The code}
+Here is the notebook code piece by piece. The excerpts keep the line numbers of the notebook file. The nodes and the storage come first.
+
+\excerpt[PersistentSegTree]{../notebook/code/ds/persistent-segtree.cpp}{1}{5}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Line 2. Children \code|l| and \code|r| are indices into \code|t|, and \code|s| is the sum of the block.
+\item Line 3. The array starts with node~0, whose children are node~0 and whose sum is 0. So version~0 is root~0 and nothing is built.
+\item Lines 4--5. The tree covers \([0, n)\). When it counts values, \(n\) is the number of values \(m\).
+\end{itemize}
+\end{notes}
+
+An update copies the path, exactly as drawn.
+
+\excerpt[add]{../notebook/code/ds/persistent-segtree.cpp}{6}{17}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Line 7. Start with the whole block \([0, n)\) and return the root of the new version. The old root \code|v| is never touched.
+\item Line 9. The copy will sit at the end of \code|t|, at index \code|u|.
+\item Line 10. The copy starts out equal to node \code|v|, so it already points at both old children. A vector may copy one of its own elements this way, even when it has to move.
+\item Line 11. Every node on the path has \(i\) in its block, so its sum grows by \(x\).
+\item Line 12. A leaf has no children to replace.
+\item Lines 13--15. Only the child on the side of \(i\) is replaced, by the copy made one level down. The other child stays the old one, and that is the sharing.
+\item Line 16. Return the copy, so the parent can point at it.
+\end{itemize}
+\end{notes}
+
+A query is the plain segment tree query, started at the root of a version.
+
+\excerpt[query]{../notebook/code/ds/persistent-segtree.cpp}{18}{28}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Line 23. A block outside \([l, r)\) adds nothing. Node~0 adds nothing either, since its whole block is zeros, so the walk stops there early.
+\item Line 24. A block inside \([l, r)\) adds its sum.
+\item Lines 25--27. Otherwise split the block and ask both halves.
+\end{itemize}
+\end{notes}
+
+The \(k\)th smallest walks down two versions side by side.
+
+\excerpt[kth]{../notebook/code/ds/persistent-segtree.cpp}{29}{39}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Line 30. Pass \code|a| as the root of version~\(l\) and \code|b| as the root of version~\(r\), so the walk counts the elements of \([l, r)\).
+\item Line 31. \code|[lo, hi)| is the block of values under the current pair of nodes.
+\item Line 34. \code|c| is the count of the left half in the difference, the left child of \code|b| minus the left child of \code|a|.
+\item Line 35. The answer is among the smaller values, so both nodes go left.
+\item Line 36. Skip the \code|c| smaller elements, and both nodes go right.
+\item Line 38. A single value is left, and it is the answer. It is a rank, so map it back to the real value.
+\end{itemize}
+\end{notes}
+
+In a problem, the values are replaced by their ranks first, and the roots go in a list.
+
+\begin{cpp}[listing options={style=cp,emph={PersistentSegTree,add,kth}}]
+vi vals = a;  // the distinct values, sorted
+sort(all(vals));
+vals.erase(unique(all(vals)), vals.end());
+PersistentSegTree st(sz(vals));
+vi root{0};  // root[i] counts a[0, i)
+for (int x : a) {
+  int y = lower_bound(all(vals), x) - vals.begin();
+  root.push_back(st.add(root.back(), y, 1));
+}
+// k-th smallest of a[l, r), k from 0
+int ans = vals[st.kth(root[l], root[r], k)];
+\end{cpp}
+
+\begin{pitfall}
+Never keep a reference into \code|t| across a call to \code|add|, because \code|add| grows the vector and it may move. Lines 14 and 15 are safe only because C++17 evaluates the right side of an assignment first. Each update adds up to \(\ceil{\log_2 n} + 1\) nodes of 16 bytes, so \(2 \cdot 10^5\) updates take about 60~MB. And \code|kth| needs \(k < r - l\), or it ends on a wrong leaf.
+\end{pitfall}
