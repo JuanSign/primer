@@ -1,0 +1,24 @@
+\documentclass[9pt,a4paper,oneside]{extarticle}
+\input{preamble}
+
+\begin{document}
+\thispagestyle{first}
+
+\begin{multicols*}{2}
+
+% Empty sections stay commented out, since a run of empty headings sticks
+% together and wrecks the layout. \stepcounter keeps the numbering.
+\input{sections/01-contest}
+\stepcounter{section} % \input{sections/02-number-theory}
+\stepcounter{section} % \input{sections/03-combinatorics}
+\stepcounter{section} % \input{sections/04-algebra}
+\input{sections/05-data-structures}
+\stepcounter{section} % \input{sections/06-graphs}
+\stepcounter{section} % \input{sections/07-strings}
+\stepcounter{section} % \input{sections/08-geometry}
+\stepcounter{section} % \input{sections/09-dynamic-programming}
+\stepcounter{section} % \input{sections/10-miscellaneous}
+
+\end{multicols*}
+
+\end{document}

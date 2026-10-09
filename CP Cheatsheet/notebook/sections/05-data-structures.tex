@@ -1,0 +1,30 @@
+\section{Data Structures}
+
+\topic{Lazy Segment Tree}[\log n]
+\cppfile[title=SegTree,usage={ranges are [l, r), 0-indexed},
+  funcs={SegTree,merge,apply,comp,build,put,push,update,query,set,first}]{code/ds/segtree.cpp}
+
+\topic{Fenwick Tree}[\log n]
+\cppfile[title=FenwickTree,usage={ranges are [l, r), 0-indexed},
+  funcs={FenwickTree,add,sum,query}]{code/ds/fenwick.cpp}
+
+\topic{Sparse Table}[1]
+\cppfile[title=SparseTable,usage={ranges are [l, r), 0-indexed},
+  funcs={SparseTable,op,query}]{code/ds/sparse.cpp}
+
+\topic{DSU with Rollback}[\log n]
+\cppfile[title=RollbackDSU,usage={rollback(t) undoes to time() == t},
+  funcs={RollbackDSU,find,size,time,join,rollback}]{code/ds/rollback-dsu.cpp}
+
+\topic{Ordered Set}[\log n]
+\cppfile[title=OrderedSet,usage={includes go at the top},
+  funcs={OrderedSet,find_by_order,order_of_key}]{code/ds/ordered-set.cpp}
+
+\topic{Implicit Treap}[\log n]
+\cppfile[title=Treap,usage={positions are [l, r), 0-indexed},
+  funcs={Treap,merge,apply,comp,make,put,push,pull,split,join,
+    insert,erase,on,update,reverse,query}]{code/ds/treap.cpp}
+
+\topic{Persistent Segment Tree}[\log n]
+\cppfile[title=PersistentSegTree,usage={every add returns a new root},
+  funcs={PersistentSegTree,add,query,kth}]{code/ds/persistent-segtree.cpp}

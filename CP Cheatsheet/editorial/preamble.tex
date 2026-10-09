@@ -1,0 +1,273 @@
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{newpxtext}
+\usepackage[vvarbb]{newpxmath}
+\usepackage[varqu,varl,scaled=0.95]{zi4}
+\usepackage{microtype}
+\usepackage[a4paper,top=2.8cm,bottom=3cm,left=3cm,right=3cm,headheight=14pt]{geometry}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{xparse}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning,decorations.pathreplacing}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage[hypertexnames=false]{hyperref}
+\usepackage{thmtools}
+
+\definecolor{ink}{HTML}{1E293B}
+\definecolor{muted}{HTML}{64748B}
+\definecolor{thmcolor}{HTML}{1D4ED8}
+\definecolor{defcolor}{HTML}{0F766E}
+\definecolor{excolor}{HTML}{B45309}
+\definecolor{warncolor}{HTML}{B91C1C}
+
+\AtBeginDocument{\color{ink}}
+\frenchspacing
+% Prose lines never break inside a word, hyphenated or not.
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\emergencystretch=2em
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=thmcolor,
+  citecolor=thmcolor,
+  urlcolor=thmcolor,
+  pdftitle={Competitive Programming, Editorial},
+  pdfauthor={J.S.A. Siagian}
+}
+
+\setlength{\parskip}{5pt plus 1pt}
+\setlist{itemsep=2pt,topsep=3pt,parsep=0pt,leftmargin=1.4em}
+\setlist[enumerate,1]{label=\textup{(\arabic*)}}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\tikzset{>=Stealth}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {\textcolor{thmcolor}{\thesection}}{0.6em}{}
+  [\nobreak\vspace{2pt}{\color{thmcolor}\hrule height 0.8pt}\nobreak]
+\titleformat{name=\section,numberless}
+  {\normalfont\Large\bfseries}
+  {}{0pt}{}
+  [\nobreak\vspace{2pt}{\color{thmcolor}\hrule height 0.8pt}\nobreak]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\textcolor{thmcolor}{\thesubsection}}{0.6em}{}
+\titleformat{\subsubsection}[runin]
+  {\normalfont\normalsize\bfseries}
+  {}{0pt}{}[.]
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{6pt}{0.5em}
+
+\titlecontents{section}[1.6em]
+  {\addvspace{4pt}\bfseries}
+  {\contentslabel[\textcolor{thmcolor}{\thecontentslabel}]{1.6em}}
+  {\hspace*{-1.6em}}
+  {\hfill\contentspage}
+\titlecontents{subsection}[3.8em]
+  {}
+  {\contentslabel[\textcolor{muted}{\thecontentslabel}]{2.2em}}
+  {\hspace*{-2.2em}}
+  {\titlerule*[0.6em]{\textcolor{muted}{.}}\contentspage}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+\renewcommand{\subsectionmark}[1]{}
+\fancyhead[L]{\small\color{muted}\nouppercase{\leftmark}}
+\fancyhead[R]{\small\color{muted}\thepage}
+
+\newtheoremstyle{primerthm}{0pt}{0pt}{}{}{\bfseries\color{thmcolor}}{.}{0.5em}
+  {\thmname{#1}\thmnote{\ \textnormal{(#3)}}}
+\newtheoremstyle{primerdef}{0pt}{0pt}{}{}{\bfseries\color{defcolor}}{.}{0.5em}
+  {\thmname{#1}\thmnote{\ \textnormal{(#3)}}}
+\newtheoremstyle{primerex}{0pt}{0pt}{}{}{\bfseries\color{excolor}}{.}{0.5em}
+  {\thmname{#1}\thmnote{\ \textnormal{(#3)}}}
+\newtheoremstyle{primerrem}{}{}{}{}{\bfseries\itshape\color{muted}}{.}{0.5em}
+  {\thmname{#1}\thmnote{\ \textnormal{(#3)}}}
+
+\declaretheorem[name=Theorem,style=primerthm,numbered=no]{theorem}
+\declaretheorem[name=Lemma,style=primerthm,numbered=no]{lemma}
+\declaretheorem[name=Corollary,style=primerthm,numbered=no]{corollary}
+\declaretheorem[name=Definition,style=primerdef,numbered=no]{definition}
+\declaretheorem[name=Example,style=primerex,numbered=no]{example}
+\declaretheorem[name=Remark,style=primerrem,numbered=no]{remark}
+
+\tcbset{
+  primerbox/.style={
+    enhanced,
+    breakable,
+    lines before break=3,
+    arc=0pt,
+    outer arc=0pt,
+    boxrule=0pt,
+    leftrule=2pt,
+    left=6pt,
+    right=5pt,
+    top=4pt,
+    bottom=4pt,
+    before skip=8pt,
+    after skip=8pt
+  }
+}
+\tcolorboxenvironment{theorem}{primerbox,colback=thmcolor!5,colframe=thmcolor}
+\tcolorboxenvironment{lemma}{primerbox,colback=thmcolor!5,colframe=thmcolor}
+\tcolorboxenvironment{corollary}{primerbox,colback=thmcolor!5,colframe=thmcolor}
+\tcolorboxenvironment{definition}{primerbox,unbreakable,colback=defcolor!6,colframe=defcolor}
+\tcolorboxenvironment{example}{primerbox,unbreakable,colback=excolor!4,colframe=excolor}
+\newtcolorbox{notes}[1][Notes]{
+  primerbox,
+  colback=muted!8,
+  colframe=muted,
+  before upper={\textbf{\textcolor{muted}{#1}}\par
+    \setlist[itemize]{leftmargin=1.1em,label=\textcolor{muted}{\textbullet}}}
+}
+\definecolor{probcolor}{HTML}{15803D}
+\newtcolorbox{problem}{
+  primerbox,
+  colback=probcolor!6,
+  colframe=probcolor
+}
+\newtcolorbox{pitfall}[1][Pitfall]{
+  primerbox,
+  colback=warncolor!5,
+  colframe=warncolor,
+  before upper={\textbf{\textcolor{warncolor}{#1.}}\ }
+}
+
+% Code has numbered lines, so the text can point at them.
+\newcommand{\codesize}{\fontsize{8.5}{10.2}\selectfont}
+\lstdefinestyle{cp}{
+  language=C++,
+  basicstyle=\ttfamily\codesize,
+  keywordstyle=\color{thmcolor}\bfseries,
+  commentstyle=\color{muted},
+  stringstyle=\color{excolor},
+  directivestyle=\color{defcolor},
+  morekeywords={constexpr,nullptr,decltype,noexcept,static_assert,
+    override,final,alignas,alignof,thread_local,
+    ll,vi,pii,vector,pair,string,array},
+  emphstyle=\color{defcolor},
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  tabsize=2,
+  upquote=true,
+  breaklines=true,
+  postbreak=\mbox{\textcolor{muted}{\(\hookrightarrow\)}\space},
+  numbers=left,
+  numberstyle=\tiny\color{muted},
+  numbersep=7pt,
+  aboveskip=0pt,
+  belowskip=0pt
+}
+\lstdefinestyle{cpinline}{style=cp,basicstyle=\ttfamily,numbers=none}
+\DeclareTCBListing{cpp}{!O{}}{
+  primerbox,
+  unbreakable,
+  left=17pt,
+  colback=ink!3,
+  colframe=ink!35,
+  listing only,
+  listing options={style=cp},
+  #1
+}
+\newtcbinputlisting{\cppfile}[2][]{
+  primerbox,
+  unbreakable,
+  left=17pt,
+  colback=ink!3,
+  colframe=ink!35,
+  listing only,
+  listing file={#2},
+  listing options={style=cp},
+  #1
+}
+\lstdefinestyle{plain}{style=cp,language={}}
+\newtcbinputlisting{\plainfile}[2][]{
+  primerbox,
+  unbreakable,
+  left=17pt,
+  colback=ink!3,
+  colframe=ink!35,
+  listing only,
+  listing file={#2},
+  listing options={style=plain},
+  #1
+}
+\newcommand{\code}{\lstinline[style=cpinline]}
+% Part of a notebook file, keeping the file's own line numbers.
+% \excerpt[split,join]{../notebook/code/ds/treap.cpp}{34}{46}
+\NewDocumentCommand{\excerpt}{O{} m m m}{%
+  \cppfile[listing options={style=cp,firstline=#3,lastline=#4,
+    firstnumber=#3,emph={#1}}]{#2}}
+% Small trees: \begin{tikzpicture}[tree] \node[tn] {B} child {node {A}};
+% Child nodes get tn automatically, labels stay plain.
+\tikzset{
+  tn/.style={circle,draw=ink!55,thin,solid,fill=white,minimum size=7mm,
+    inner sep=0pt,font=\small},
+  tree/.style={
+    level distance=11mm,
+    level 1/.style={sibling distance=26mm},
+    level 2/.style={sibling distance=14mm},
+    every child node/.style={tn},
+    edge from parent/.style={draw=ink!55,thin,solid}
+  },
+  % sequences drawn as rows of cells, cut by dashed red lines
+  cell/.style={draw=ink!55,fill=white,minimum size=6.5mm,
+    inner sep=0pt,font=\small},
+  cut/.style={warncolor,thick,dashed},
+  note/.style={font=\footnotesize,text=muted},
+  % piece colors, for cells and tree nodes alike
+  pa/.style={fill=thmcolor!18},
+  pb/.style={fill=excolor!25},
+  pc/.style={fill=muted!22},
+  % a highlighted path in a tree
+  hot/.style={draw=warncolor,very thick},
+  % an open spot in a tree under construction, and an edge just created
+  slot/.style={tn,dashed,draw=muted,text=muted},
+  new/.style={draw=defcolor,thick,densely dotted}
+}
+
+\NewDocumentCommand{\topic}{m !o}{%
+  \subsection[#1]{#1\IfValueT{#2}{\hfill\textnormal{\textcolor{muted}{\(\bigO{#2}\)}}}}}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\bigO}[1]{\mathcal{O}(#1)}
+\newcommand{\term}[1]{\textbf{\textcolor{defcolor}{#1}}}
+
+\DeclareMathOperator{\lcm}{lcm}
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+% Writing kit
+%   \topic{Dijkstra}[m \log n]      subsection with its complexity flushed right
+%   \begin{cpp} ... \end{cpp}       C++ snippet with numbered lines
+%   \cppfile{../notebook/code/x.cpp}  the notebook's own snippet, paths relative to main.tex
+%   \plainfile{../notebook/code/x/build.txt}  same box for shell commands
+%   \excerpt[f,g]{file}{first}{last}  lines first..last, f and g colored
+%   \begin{tikzpicture}[tree] ...   a small drawn tree
+%   \code|vector<int>|              inline C++
+%   theorem, lemma, corollary       blue boxes, \begin{theorem}[Fermat]
+%   definition, example, remark     teal, amber and muted
+%   \begin{notes}[Reading the ...]  grey box with a heading line, built for itemize
+%   \begin{pitfall} ... \end{pitfall}  red box for bugs that cost you a submission
+%   \bigO{n}, \floor{x}, \ceil{x}, \abs{x}, \lcm, \term{word}

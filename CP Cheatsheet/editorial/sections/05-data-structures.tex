@@ -1,0 +1,857 @@
+\section{Data Structures}
+
+\topic{Implicit Treap}[\log n]
+
+\begin{problem}
+Given an array \(a\) of length \(n\), we can do the following in \(\bigO{\log n}\).
+\begin{itemize}
+\item Insert or erase an element at any position.
+\item Split the array into several pieces, then join the pieces back in any order.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm]
+  % split after 3 elements
+  \foreach \c [count=\i from 0] in {A,B,C}
+    \node[cell,pa] at (\i, 0) {\c};
+  \foreach \c [count=\i from 3] in {D,E}
+    \node[cell,pb] at (\i, 0) {\c};
+  \draw[cut] (2.5, 0.8) -- (2.5, -0.8);
+  \node[note,text=warncolor] at (2.5, 1.2) {split};
+  \foreach \c [count=\i from 0] in {A,B,C}
+    \node[cell,pa] at (\i - 0.4, -2.2) {\c};
+  \foreach \c [count=\i from 3] in {D,E}
+    \node[cell,pb] at (\i + 0.4, -2.2) {\c};
+  \node[note] at (0.6, -3.1) {left piece};
+  \node[note] at (3.9, -3.1) {right piece};
+
+  % cut [2, 5) out and paste it in front
+  \begin{scope}[xshift=55mm]
+    \foreach \c [count=\i from 0] in {A,B}
+      \node[cell,pa] at (\i, 0) {\c};
+    \foreach \c [count=\i from 2] in {C,D,E}
+      \node[cell,pb] at (\i, 0) {\c};
+    \node[cell,pc] at (5, 0) {F};
+    \draw[cut] (1.5, 0.8) -- (1.5, -0.8);
+    \draw[cut] (4.5, 0.8) -- (4.5, -0.8);
+    \node[note,text=warncolor] at (3, 1.2) {multiple splits};
+    \foreach \c [count=\i from 0] in {A,B}
+      \node[cell,pa] at (\i - 0.4, -2.2) {\c};
+    \foreach \c [count=\i from 2] in {C,D,E}
+      \node[cell,pb] at (\i, -2.2) {\c};
+    \node[cell,pc] at (5.4, -2.2) {F};
+    \node[note] at (0.1, -3.1) {\([0, l)\)};
+    \node[note] at (3, -3.1) {\([l, r)\)};
+    \node[note] at (5.4, -3.1) {\([r, n)\)};
+    \foreach \c [count=\i from 0] in {C,D,E}
+      \node[cell,pb] at (\i, -4.6) {\c};
+    \foreach \c [count=\i from 3] in {A,B}
+      \node[cell,pa] at (\i, -4.6) {\c};
+    \node[cell,pc] at (5, -4.6) {F};
+    \node[note,text=defcolor] at (2.5, -5.5) {join in a new order};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+\item Run every range update and range query a lazy segment tree supports.
+\end{itemize}
+\end{problem}
+
+\subsubsection{Tree Structure}
+Every node holds one element. Reading the tree in order gives the array. In order means the left subtree first, then the node itself, then the right subtree.
+
+\begin{center}
+\begin{tikzpicture}[tree]
+  \node[tn] {B}
+    child {node {A}}
+    child {node {D} child {node {C}} child {node {E}}};
+  \begin{scope}[xshift=48mm,yshift=-11mm,x=6.5mm,y=6.5mm]
+    \foreach \c [count=\i from 0] in {A,B,C,D,E} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\i};
+    }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{Subtrees are blocks}
+The nodes of a subtree are read one after another, so every subtree is a block of consecutive elements. A node is therefore one element and also one block, the block of its subtree. This is what lets a single node store a summary of a whole block, such as its sum, and it is why one node can stand for a whole range.
+
+\begin{center}
+\begin{tikzpicture}[tree]
+  \node[tn] {B}
+    child {node[pa] {A}}
+    child {node[pb] {D} child {node[pb] {C}} child {node[pb] {E}}};
+  \begin{scope}[xshift=48mm,yshift=-11mm,x=6.5mm,y=6.5mm]
+    \node[cell,pa] at (0, 0) {A};
+    \node[cell] at (1, 0) {B};
+    \foreach \c [count=\i from 2] in {C,D,E}
+      \node[cell,pb] at (\i, 0) {\c};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The subtree of \texttt{D} is the block \texttt{C D E}, and the subtree of \texttt{A} is the block \texttt{A}.
+
+\subsubsection{Implicit positions}
+No node stores its position. Instead every node stores the size of its subtree, which is the length of its block. Inside that block the left subtree comes first, so the node sits at position \(L\), the size of its left subtree. That size is just the number stored at the left child, or \(0\) if there is none. To find position \(k\), start at the root. If \(k < L\), go left and look for \(k\). If \(k = L\), the root is the answer. If \(k > L\), go right and look for \(k - L - 1\), skipping the left block and the root.
+
+\begin{center}
+\begin{tikzpicture}[tree]
+  \node[tn,label={[note]right:5}] {B}
+    child {node[label={[note]left:1}] {A}}
+    child {node[label={[note]right:3}] {D}
+      child {node[label={[note]left:1}] {C}}
+      child {node[label={[note]right:1}] {E}}};
+  \begin{scope}[xshift=48mm,yshift=-11mm,x=6.5mm,y=6.5mm]
+    \foreach \c [count=\i from 0] in {A,B,C,D,E} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\i};
+    }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The small numbers are subtree sizes. Let's look for position 2.
+
+Start at the root. \texttt{B} has \(L = 1\) and \(2 > 1\), so \texttt{A} and \texttt{B} come before position 2. We move right to \texttt{D} and look for \(2 - 1 - 1 = 0\) inside its block.
+
+\begin{center}
+\begin{tikzpicture}[tree]
+  \node[tn,pc,label={[note]right:5}] {B}
+    child {node[pc,label={[note]left:1}] {A}}
+    child {node[hot,label={[note]right:3}] {D}
+      child {node[label={[note]left:1}] {C}}
+      child {node[label={[note]right:1}] {E}}};
+  \begin{scope}[xshift=48mm,yshift=-11mm,x=6.5mm,y=6.5mm]
+    \foreach \c [count=\i from 0] in {A,B,C,D,E} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\i};
+    }
+    \node[cell,pc] at (0, 0) {A};
+    \node[cell,pc] at (1, 0) {B};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+At \texttt{D}, \(L = 1\) and \(0 < 1\), so the answer lies in the left block, and \texttt{D} and \texttt{E} come after it. We move left to \texttt{C} and look for 0.
+
+\begin{center}
+\begin{tikzpicture}[tree]
+  \node[tn,pc,label={[note]right:5}] {B}
+    child {node[pc,label={[note]left:1}] {A}}
+    child {node[pc,label={[note]right:3}] {D}
+      child {node[hot,label={[note]left:1}] {C}}
+      child {node[pc,label={[note]right:1}] {E}}};
+  \begin{scope}[xshift=48mm,yshift=-11mm,x=6.5mm,y=6.5mm]
+    \foreach \c [count=\i from 0] in {A,B,C,D,E} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\i};
+    }
+    \foreach \c/\i in {A/0,B/1,D/3,E/4}
+      \node[cell,pc] at (\i, 0) {\c};
+    \node[cell,hot] at (2, 0) {C};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+At \texttt{C}, \(L = 0\) and \(0 = 0\), so \texttt{C} is the answer, and it indeed sits at position 2.
+
+\subsubsection{Priorities}
+Many trees spell the same array, so we need a rule that picks one. Every node gets a random priority, and every parent must have a larger priority than its children. The root is then the node with the largest priority, the nodes before it form its left subtree, the nodes after it form its right subtree, and the same rule repeats inside each subtree. So the priorities decide the shape completely.
+
+\begin{center}
+\begin{tikzpicture}[tree]
+  % first priorities
+  \node[tn,label={[note]right:9}] at (0, 0) {B}
+    child {node[label={[note]left:3}] {A}}
+    child {node[label={[note]right:7}] {D}
+      child {node[label={[note]left:5}] {C}}
+      child {node[label={[note]right:2}] {E}}};
+  \begin{scope}[xshift=-9.5mm,yshift=-46mm,x=6.5mm,y=6.5mm]
+    \foreach \c/\p [count=\i from 0] in {A/3,B/9,C/5,D/7,E/2} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+  \end{scope}
+  % the same array with other priorities
+  \node[tn,label={[note]right:9}] at (75mm, 0) {E}
+    child {node[label={[note]left:8}] {A}
+      child[missing]
+      child {node[label={[note]right:6}] {C}
+        child {node[label={[note]left:2}] {B}}
+        child {node[label={[note]right:4}] {D}}}}
+    child[missing];
+  \begin{scope}[xshift=56mm,yshift=-46mm,x=6.5mm,y=6.5mm]
+    \foreach \c/\p [count=\i from 0] in {A/8,B/2,C/6,D/4,E/9} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The small numbers are priorities. On the left, \texttt{B} has the largest, so it is the root, and among \texttt{C D E} the largest is \texttt{D}. On the right, the same array gets other priorities. Now \texttt{E} is the root and the tree is deeper, yet it still reads \texttt{A B C D E}.
+
+Random priorities put the root at a random position, like a random pivot in quicksort. So the expected depth is \(\bigO{\log n}\). \textit{That's just how randomness works.} Every walk from the root to a node is therefore short. Priorities only affect speed. Every operation stays correct whatever shape the tree has.
+
+\subsubsection{Split}
+We can split a sequence after its first \(k\) elements. This gives two blocks, which means two trees, and their shapes can differ from the original tree. We will walk through this on a longer sequence.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,label={[note]right:9}] {E}
+    child {node[label={[note]left:7}] {B}
+      child {node[label={[note]left:3}] {A}}
+      child {node[label={[note]right:6}] {D}
+        child {node[label={[note]left:2}] {C}}
+        child[missing]}}
+    child {node[label={[note]right:8}] {G}
+      child {node[label={[note]left:4}] {F}}
+      child {node[label={[note]right:5}] {H}}};
+  \begin{scope}[xshift=50mm,yshift=-16mm,x=6.5mm,y=6.5mm]
+    \foreach \c/\p [count=\i from 0] in {A/3,B/7,C/2,D/6,E/9,F/4,G/8,H/5} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The small numbers are priorities. Let's split after three elements.
+
+Start at the root. Four elements come before \texttt{E}, so \texttt{E} sits at position 4, while the left tree only takes positions 0, 1 and 2. So \texttt{E} lies after the cut, and \texttt{E} with its whole right subtree belongs to the right tree. We move to \texttt{B}.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:9}] {E}
+    child {node[hot,label={[note]left:7}] {B}
+      child {node[label={[note]left:3}] {A}}
+      child {node[label={[note]right:6}] {D}
+        child {node[label={[note]left:2}] {C}}
+        child[missing]}
+      edge from parent[draw=none]}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \begin{scope}[xshift=50mm,yshift=-16mm,x=6.5mm,y=6.5mm]
+    \foreach \c/\p [count=\i from 0] in {A/3,B/7,C/2,D/6} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \foreach \c/\p [count=\i from 4] in {E/9,F/4,G/8,H/5} {
+      \node[cell,pb] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \draw[cut] (2.5, 0.8) -- (2.5, -0.8);
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+At \texttt{B}, one element comes before it, so \texttt{B} sits at position 1, inside the left tree. So \texttt{B} and its whole left subtree belong to the left tree. The cut must still pass through its right subtree after \(3 - 1 - 1 = 1\) more element. We move to \texttt{D}.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:9}] {E}
+    child {node[pa,label={[note]left:7}] {B}
+      child {node[pa,label={[note]left:3}] {A}}
+      child {node[hot,label={[note]right:6}] {D}
+        child {node[label={[note]left:2}] {C}}
+        child[missing]
+        edge from parent[draw=none]}
+      edge from parent[draw=none]}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \begin{scope}[xshift=50mm,yshift=-16mm,x=6.5mm,y=6.5mm]
+    \foreach \c/\p [count=\i from 0] in {A/3,B/7} {
+      \node[cell,pa] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \foreach \c/\p [count=\i from 2] in {C/2,D/6} {
+      \node[cell] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \foreach \c/\p [count=\i from 4] in {E/9,F/4,G/8,H/5} {
+      \node[cell,pb] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \draw[cut] (2.5, 0.8) -- (2.5, -0.8);
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+At \texttt{D}, one element is still to be cut, and one element, \texttt{C}, comes before \texttt{D} inside its block. So \texttt{D} lies after the cut, and \texttt{D} with its right subtree belongs to the right tree. We move to \texttt{C}.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:9}] {E}
+    child {node[pa,label={[note]left:7}] {B}
+      child {node[pa,label={[note]left:3}] {A}}
+      child {node[pb,label={[note]right:6}] {D}
+        child {node[hot,label={[note]left:2}] {C}
+          edge from parent[draw=none]}
+        child[missing]
+        edge from parent[draw=none]}
+      edge from parent[draw=none]}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \begin{scope}[xshift=50mm,yshift=-16mm,x=6.5mm,y=6.5mm]
+    \foreach \c/\p [count=\i from 0] in {A/3,B/7} {
+      \node[cell,pa] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \node[cell] at (2, 0) {C};
+    \node[note] at (2, -0.9) {2};
+    \foreach \c/\p [count=\i from 3] in {D/6,E/9,F/4,G/8,H/5} {
+      \node[cell,pb] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \draw[cut] (2.5, 0.8) -- (2.5, -0.8);
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+At \texttt{C}, nothing comes before it and one element is still to be cut. So \texttt{C} lies before the cut and belongs to the left tree. The walk would go on into its right subtree, but that subtree is empty, so the walk ends here.
+
+Every node now has its color, but the pieces are still loose. Split finishes on the way back up the same path, starting from the bottom. Each node receives two pieces from the call below it, keeps the piece on its own side of the cut and passes the other one up. The table lists the two trees each node returns, written as the elements they read, with the root in bold.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Node & Left tree & Right tree \\
+\midrule
+\texttt{C} & \texttt{\textbf{C}} & \(\varnothing\) \\
+\texttt{D} & \texttt{\textbf{C}} & \texttt{\textbf{D}} \\
+\texttt{B} & \texttt{A \textbf{B} C} & \texttt{\textbf{D}} \\
+\texttt{E} & \texttt{A \textbf{B} C} & \texttt{D \textbf{E} F G H} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The dotted lines are the two new edges.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:9}] (e) {E}
+    child {node[pa,label={[note]left:7}] (b) {B}
+      child {node[pa,label={[note]left:3}] {A}}
+      child {node[pb,label={[note]right:6}] (d) {D}
+        child {node[pa,label={[note]left:2}] (c) {C}
+          edge from parent[draw=none]}
+        child[missing]
+        edge from parent[draw=none]}
+      edge from parent[draw=none]}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \draw[defcolor,thick,densely dotted] (c) -- (b);
+  \draw[defcolor,thick,densely dotted] (d) -- (e);
+  \begin{scope}[xshift=50mm,yshift=-16mm,x=6.5mm,y=6.5mm]
+    \foreach \c/\p [count=\i from 0] in {A/3,B/7,C/2} {
+      \node[cell,pa] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \foreach \c/\p [count=\i from 3] in {D/6,E/9,F/4,G/8,H/5} {
+      \node[cell,pb] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \draw[cut] (2.5, 0.8) -- (2.5, -0.8);
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+The last row of the table is what the whole call returns. The left tree reads \texttt{A B C} and the right tree reads \texttt{D E F G H}. Both have shapes the original tree never had.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=18mm},
+    level 2/.style={sibling distance=18mm}]
+  \node[tn,pa,label={[note]right:7}] at (0, 0) {B}
+    child {node[pa,label={[note]left:3}] {A}}
+    child {node[pa,label={[note]right:2}] {C}};
+  \node[tn,pb,label={[note]right:9}] at (62mm, 0) {E}
+    child {node[pb,label={[note]left:6}] {D}}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \begin{scope}[xshift=-6.5mm,yshift=-38mm,x=6.5mm,y=6.5mm]
+    \foreach \c [count=\i from 0] in {A,B,C}
+      \node[cell,pa] at (\i, 0) {\c};
+    \node[note] at (1, -0.9) {left tree};
+  \end{scope}
+  \begin{scope}[xshift=49mm,yshift=-38mm,x=6.5mm,y=6.5mm]
+    \foreach \c [count=\i from 0] in {D,E,F,G,H}
+      \node[cell,pb] at (\i, 0) {\c};
+    \node[note] at (2, -0.9) {right tree};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{Join}
+We can join two trees \code|a| and \code|b| into one, with every element of \code|a| before every element of \code|b|.
+
+Join compares the two roots and puts the one with the larger priority on top. The interesting part is what the winner keeps. Suppose the root of \code|a| wins. Its left subtree comes right before it, and nothing from \code|b| can come before it, because all of \code|b| comes after all of \code|a|. So the left subtree stays as its left child. After the root come its right subtree and then all of \code|b|, in that order. Gluing these two is another join, one level lower, and the result becomes the new right child.
+
+When the root of \code|b| wins, it is the mirror image. Its right subtree comes right after it, and nothing from \code|a| can come after it. So the right subtree stays as its right child. Before the root come all of \code|a| and then its left subtree. Gluing these two is another join, and the result becomes the new left child. When one of the trees is empty, the result is simply the other tree.
+
+\begin{center}
+\begin{tikzpicture}[blk/.style={draw=ink!55,minimum height=6.5mm,
+    inner sep=0pt,font=\footnotesize,anchor=west}]
+  % the root of a wins
+  \node[note,anchor=west] at (0, 7mm) {the root of \texttt{a} wins};
+  \node[blk,pa,minimum width=28mm] at (0, 0) {left subtree};
+  \node[blk,pa,hot,minimum width=12mm] at (28mm, 0) {root};
+  \node[blk,pa,minimum width=28mm] at (40mm, 0) {right subtree};
+  \node[blk,pb,minimum width=32mm] at (68mm, 0) {all of \texttt{b}};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt},muted]
+    (0.5mm, -4.5mm) -- (27.5mm, -4.5mm)
+    node[midway,below=5pt,note] {stays as the left child};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt},muted]
+    (40.5mm, -4.5mm) -- (99.5mm, -4.5mm)
+    node[midway,below=5pt,note] {joined next, becomes the right child};
+  % the root of b wins
+  \begin{scope}[yshift=-28mm]
+    \node[note,anchor=west] at (0, 7mm) {the root of \texttt{b} wins};
+    \node[blk,pa,minimum width=32mm] at (0, 0) {all of \texttt{a}};
+    \node[blk,pb,minimum width=28mm] at (32mm, 0) {left subtree};
+    \node[blk,pb,hot,minimum width=12mm] at (60mm, 0) {root};
+    \node[blk,pb,minimum width=28mm] at (72mm, 0) {right subtree};
+    \draw[decorate,decoration={brace,mirror,amplitude=4pt},muted]
+      (0.5mm, -4.5mm) -- (59.5mm, -4.5mm)
+      node[midway,below=5pt,note] {joined next, becomes the left child};
+    \draw[decorate,decoration={brace,mirror,amplitude=4pt},muted]
+      (72.5mm, -4.5mm) -- (99.5mm, -4.5mm)
+      node[midway,below=5pt,note] {stays as the right child};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+So the priorities only decide which node goes higher. Which subtree the winner keeps is what puts every element in its place, and that depends only on which tree the winner comes from.
+
+Let's join the two trees we just got from split. We should get the original tree back.
+
+Compare the two roots. \texttt{E} has priority 9 and \texttt{B} has 7, so \texttt{E} goes on top. Everything in the right tree comes after the left tree, so \texttt{E} keeps its right subtree. Its left side must hold the whole left tree followed by its old left subtree \texttt{D}, so we join those two next.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:9}] {E}
+    child {node[slot] {?}}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \node[note] at (0, -40mm) {built so far};
+  \begin{scope}[xshift=70mm,level 1/.style={sibling distance=16mm}]
+    \node[tn,pa,hot,label={[note]right:7}] {B}
+      child {node[pa,label={[note]left:3}] {A}}
+      child {node[pa,label={[note]right:2}] {C}};
+    \node[tn,pb,hot,label={[note]right:6}] at (28mm, 0) {D};
+    \node[note] at (14mm, -40mm) {still to join};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Compare \texttt{B} with 7 and \texttt{D} with 6. \texttt{B} goes on top and fills the open spot as the left child of \texttt{E}. \texttt{B} comes before \texttt{D}, so it keeps its left subtree \texttt{A}. Its right side must hold its old right subtree \texttt{C} followed by \texttt{D}, so we join those two next.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:9}] {E}
+    child {node[pa,label={[note]left:7}] {B}
+      child {node[pa,label={[note]left:3}] {A}}
+      child {node[slot] {?}}
+      edge from parent[new]}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \node[note] at (0, -40mm) {built so far};
+  \begin{scope}[xshift=70mm]
+    \node[tn,pa,hot,label={[note]right:2}] {C};
+    \node[tn,pb,hot,label={[note]right:6}] at (28mm, 0) {D};
+    \node[note] at (14mm, -40mm) {still to join};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Compare \texttt{C} with 2 and \texttt{D} with 6. \texttt{D} goes on top and fills the open spot as the right child of \texttt{B}. \texttt{D} comes after \texttt{C}, so it keeps its right subtree, which is empty. Its left side must hold \texttt{C} followed by its old left subtree, which is also empty.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:9}] {E}
+    child {node[pa,label={[note]left:7}] {B}
+      child {node[pa,label={[note]left:3}] {A}}
+      child {node[pb,label={[note]right:6}] {D}
+        child {node[slot] {?}}
+        child[missing]
+        edge from parent[new]}
+      edge from parent[new]}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \node[note] at (0, -40mm) {built so far};
+  \begin{scope}[xshift=70mm]
+    \node[tn,pa,hot,label={[note]right:2}] {C};
+    \node[note] at (28mm, 0) {\(\varnothing\)};
+    \node[note] at (14mm, -40mm) {still to join};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Joining \texttt{C} with an empty tree just gives \texttt{C}. So \texttt{C} fills the last open spot as the left child of \texttt{D}. The join is done, and we got the original tree back. The dotted lines are the three edges join created.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:9}] {E}
+    child {node[pa,label={[note]left:7}] {B}
+      child {node[pa,label={[note]left:3}] {A}}
+      child {node[pb,label={[note]right:6}] {D}
+        child {node[pa,label={[note]left:2}] {C}
+          edge from parent[new]}
+        child[missing]
+        edge from parent[new]}
+      edge from parent[new]}
+    child {node[pb,label={[note]right:8}] {G}
+      child {node[pb,label={[note]left:4}] {F}}
+      child {node[pb,label={[note]right:5}] {H}}};
+  \begin{scope}[xshift=50mm,yshift=-16mm,x=6.5mm,y=6.5mm]
+    \foreach \c/\p [count=\i from 0] in {A/3,B/7,C/2} {
+      \node[cell,pa] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+    \foreach \c/\p [count=\i from 3] in {D/6,E/9,F/4,G/8,H/5} {
+      \node[cell,pb] at (\i, 0) {\c};
+      \node[note] at (\i, -0.9) {\p};
+    }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Join only compares priorities and never looks at sizes, because the order is already fixed by which tree each element comes from.
+
+\subsubsection{Operations}
+With split and join, every operation in the green box is a short recipe. We cut the sequence into pieces, work on the pieces and join them back. Each recipe uses a fixed number of splits and joins, so every operation costs \(\bigO{\log n}\).
+
+\textbf{Insert} a value \(x\) at position \(i\). Split after \(i\) elements, then join the left piece, a new tree holding only \(x\) and the right piece, in that order.
+
+\textbf{Erase} the element at position \(i\). Split after \(i\) elements, then split the right piece after one more element. The middle piece holds only the element to erase. Join the two outer pieces and drop the middle one.
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm,px/.style={fill=defcolor!22}]
+  % insert X at position 3
+  \foreach \c [count=\i from 0] in {A,B,C,D,E,F,G,H}
+    \node[cell] at (\i, 0) {\c};
+  \draw[cut] (2.5, 0.8) -- (2.5, -0.8);
+  \node[note,text=warncolor] at (2.5, 1.2) {split after 3};
+  \foreach \c [count=\i from 0] in {A,B,C}
+    \node[cell,pa] at (\i - 0.5, -2.2) {\c};
+  \node[cell,px] at (3, -2.2) {X};
+  \foreach \c [count=\i from 3] in {D,E,F,G,H}
+    \node[cell,pb] at (\i + 1.5, -2.2) {\c};
+  \node[note] at (3, -3.1) {new tree};
+  \foreach \c [count=\i from 0] in {A,B,C}
+    \node[cell,pa] at (\i, -4.4) {\c};
+  \node[cell,px] at (3, -4.4) {X};
+  \foreach \c [count=\i from 4] in {D,E,F,G,H}
+    \node[cell,pb] at (\i, -4.4) {\c};
+  \node[note,text=defcolor] at (4, -5.3) {join the three pieces};
+
+  % erase position 3
+  \begin{scope}[xshift=72mm]
+    \foreach \c [count=\i from 0] in {A,B,C,D,E,F,G,H}
+      \node[cell] at (\i, 0) {\c};
+    \draw[cut] (2.5, 0.8) -- (2.5, -0.8);
+    \draw[cut] (3.5, 0.8) -- (3.5, -0.8);
+    \node[note,text=warncolor] at (3, 1.2) {split twice};
+    \foreach \c [count=\i from 0] in {A,B,C}
+      \node[cell,pa] at (\i - 0.5, -2.2) {\c};
+    \node[cell,pc] at (3, -2.2) {D};
+    \foreach \c [count=\i from 4] in {E,F,G,H}
+      \node[cell,pb] at (\i + 0.5, -2.2) {\c};
+    \node[note] at (3, -3.1) {dropped};
+    \foreach \c [count=\i from 0] in {A,B,C}
+      \node[cell,pa] at (\i, -4.4) {\c};
+    \foreach \c [count=\i from 3] in {E,F,G,H}
+      \node[cell,pb] at (\i, -4.4) {\c};
+    \node[note,text=defcolor] at (3, -5.3) {join the outer pieces};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+\textbf{Work on a block} \(a[l, r)\). Split after \(l\) elements, then split the right piece after \(r - l\) more. The middle piece is now a whole tree, and its root stands for exactly the block. A range update, a range query or a reversal acts on that one root, as the next part explains. Then join the three pieces back in their old order.
+
+\textbf{Rearrange blocks.} Cut the sequence into as many pieces as needed and join them in a new order. Moving a block, swapping two blocks and cyclically shifting a block all work this way.
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm,px/.style={fill=defcolor!22}]
+  % reverse the block [2, 5)
+  \foreach \c [count=\i from 0] in {A,B,C,D,E,F,G,H}
+    \node[cell] at (\i, 0) {\c};
+  \draw[cut] (1.5, 0.8) -- (1.5, -0.8);
+  \draw[cut] (4.5, 0.8) -- (4.5, -0.8);
+  \node[note,text=warncolor] at (3, 1.2) {cut out \([2, 5)\)};
+  \foreach \c [count=\i from 0] in {A,B}
+    \node[cell,pa] at (\i - 0.5, -2.2) {\c};
+  \foreach \c [count=\i from 2] in {C,D,E}
+    \node[cell,pb] at (\i, -2.2) {\c};
+  \foreach \c [count=\i from 5] in {F,G,H}
+    \node[cell,pc] at (\i + 0.5, -2.2) {\c};
+  \node[note] at (3, -3.1) {one tree, act on its root};
+  \foreach \c [count=\i from 0] in {A,B}
+    \node[cell,pa] at (\i, -4.4) {\c};
+  \foreach \c [count=\i from 2] in {E,D,C}
+    \node[cell,pb] at (\i, -4.4) {\c};
+  \foreach \c [count=\i from 5] in {F,G,H}
+    \node[cell,pc] at (\i, -4.4) {\c};
+  \node[note,text=defcolor] at (3.5, -5.3) {reversed, joined back};
+
+  % shift the block [2, 6) right by one
+  \begin{scope}[xshift=72mm]
+    \foreach \c [count=\i from 0] in {A,B,C,D,E,F,G,H}
+      \node[cell] at (\i, 0) {\c};
+    \draw[cut] (1.5, 0.8) -- (1.5, -0.8);
+    \draw[cut] (4.5, 0.8) -- (4.5, -0.8);
+    \draw[cut] (5.5, 0.8) -- (5.5, -0.8);
+    \node[note,text=warncolor] at (3.5, 1.2) {cut into four};
+    \foreach \c [count=\i from 0] in {A,B}
+      \node[cell,pa] at (\i - 0.6, -2.2) {\c};
+    \foreach \c [count=\i from 2] in {C,D,E}
+      \node[cell,pb] at (\i - 0.2, -2.2) {\c};
+    \node[cell,px] at (5.2, -2.2) {F};
+    \foreach \c [count=\i from 6] in {G,H}
+      \node[cell,pc] at (\i + 0.6, -2.2) {\c};
+    \foreach \c [count=\i from 0] in {A,B}
+      \node[cell,pa] at (\i, -4.4) {\c};
+    \node[cell,px] at (2, -4.4) {F};
+    \foreach \c [count=\i from 3] in {C,D,E}
+      \node[cell,pb] at (\i, -4.4) {\c};
+    \foreach \c [count=\i from 6] in {G,H}
+      \node[cell,pc] at (\i, -4.4) {\c};
+    \node[note,text=defcolor] at (3.5, -5.3) {joined in a new order};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+On the right, the block \texttt{C D E F} is shifted right by one, so \texttt{F} wraps around to its front.
+
+\subsubsection{Lazy tags}
+Besides its element, every node stores the sum of its block. Let \texttt{A} to \texttt{H} hold the values 1 to 8, and let's add 10 to the block \texttt{A B C}.
+
+We cut the block out, which gives the left tree from split, and update only its root. The value of \texttt{B} grows by 10. The sum of its block grows by 10 for each of its 3 elements, from 6 to 36. The children \texttt{A} and \texttt{C} are not touched. Instead \texttt{B} keeps a note saying that its children still owe 10. This note is called a lazy tag.
+
+\begin{center}
+\begin{tikzpicture}[tree,level 1/.style={sibling distance=22mm}]
+  \node[tn,pa,label={[note]right:12},
+    label={[font=\footnotesize,text=warncolor]above:\(+10\)}] {B}
+    child {node[pa,label={[note]left:1}] {A}}
+    child {node[pa,label={[note]right:3}] {C}};
+  \node[note] at (0, -20mm) {block sum at \texttt{B} is \(36\)};
+\end{tikzpicture}
+\end{center}
+The small numbers are values, and the red number is the tag.
+
+A tag is delivered by pushing. Pushing a node applies its tag to both children the same way, adds it to their own tags and clears it at the node. Split and join push a node before they touch its children. One reason is reading them, because their values may still be stale. The other is moving them, because a tag is meant only for the children the node has when the tag is written.
+
+Now we join \texttt{A B C} back. Join reaches \texttt{B} and is about to give it a new right child, so it pushes \texttt{B} first. \texttt{A} becomes 11, \texttt{C} becomes 13 and the tag at \texttt{B} is cleared. Only then does \texttt{C} move under \texttt{D}, with its update already inside.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:5}] {E}
+    child {node[pa,label={[note]left:12}] {B}
+      child {node[pa,label={[note]left:11}] {A}}
+      child {node[pb,label={[note]right:4}] {D}
+        child {node[pa,label={[note]left:13}] {C}}
+        child[missing]}}
+    child {node[pb,label={[note]right:7}] {G}
+      child {node[pb,label={[note]left:6}] {F}}
+      child {node[pb,label={[note]right:8}] {H}}};
+\end{tikzpicture}
+\end{center}
+
+Without that push, \texttt{C} would move under \texttt{D} still holding 3, and the tag would stay at \texttt{B}. The children of \texttt{B} are now \texttt{A} and \texttt{D}, so the tag would later add 10 to the whole block of \texttt{D}. But \texttt{D} was never part of the block we updated.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=44mm},
+    level 2/.style={sibling distance=18mm},
+    level 3/.style={sibling distance=12mm}]
+  \node[tn,pb,label={[note]right:5}] {E}
+    child {node[pa,label={[note]left:12},
+        label={[font=\footnotesize,text=warncolor]above:\(+10\)}] {B}
+      child {node[pa,label={[note]left:1}] {A}}
+      child {node[pb,hot,label={[note]right:4}] {D}
+        child {node[pa,label={[note]left:3}] {C}}
+        child[missing]}}
+    child {node[pb,label={[note]right:7}] {G}
+      child {node[pb,label={[note]left:6}] {F}}
+      child {node[pb,label={[note]right:8}] {H}}};
+\end{tikzpicture}
+\end{center}
+This is the tree without the push. The tag at \texttt{B} now hangs above \texttt{D}, outlined in red.
+
+\subsubsection{Reverse}
+To reverse a block, we mirror its tree, swapping the left and right child at every node.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=20mm},
+    level 2/.style={sibling distance=12mm}]
+  \node[tn] at (0, 0) {B}
+    child {node {A}}
+    child {node {D} child {node {C}} child {node {E}}};
+  \begin{scope}[xshift=-13mm,yshift=-34mm,x=6.5mm,y=6.5mm]
+    \foreach \c [count=\i from 0] in {A,B,C,D,E}
+      \node[cell] at (\i, 0) {\c};
+  \end{scope}
+  \draw[->,muted,thick] (28mm, -10mm) -- (44mm, -10mm)
+    node[midway,above,note] {mirror};
+  \node[tn] at (72mm, 0) {B}
+    child {node {D} child {node {E}} child {node {C}}}
+    child {node {A}};
+  \begin{scope}[xshift=59mm,yshift=-34mm,x=6.5mm,y=6.5mm]
+    \foreach \c [count=\i from 0] in {E,D,C,B,A}
+      \node[cell] at (\i, 0) {\c};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Reading a tree always gives the left part, then the root, then the right part. After mirroring the old right part comes first and the old left part comes last, and both are mirrored as well. So the whole block reads backwards.
+
+Mirroring every node takes as long as the block is big, so the treap does it lazily. A flag on a node says that its subtree should be mirrored but has not been yet. Reversing a block cuts it out and flips the flag on its root. Pushing a flagged node does one level of the work. It swaps the two children of the node and flips the flag on each of them, because their subtrees still need mirroring inside.
+
+Let's reverse the whole tree and then look for position 0. Reversing only puts a flag on \texttt{B}. To find position 0 we walk down and push on the way.
+
+\begin{center}
+\begin{tikzpicture}[tree,
+    level 1/.style={sibling distance=16mm},
+    level 2/.style={sibling distance=10mm},
+    flag/.style={label={[font=\footnotesize,text=warncolor]above:rev}}]
+  \node[tn,flag] at (0, 0) {B}
+    child {node {A}}
+    child {node {D} child {node {C}} child {node {E}}};
+  \draw[->,muted,thick] (16mm, -8mm) -- (28mm, -8mm)
+    node[midway,above,note] {push \texttt{B}};
+  \node[tn] at (46mm, 0) {B}
+    child {node[flag] {D} child {node {C}} child {node {E}}}
+    child {node[flag] {A}};
+  \draw[->,muted,thick] (62mm, -8mm) -- (74mm, -8mm)
+    node[midway,above,note] {push \texttt{D}};
+  \node[tn] at (92mm, 0) {B}
+    child {node {D} child {node[flag] {E}} child {node[flag] {C}}}
+    child {node[flag] {A}};
+\end{tikzpicture}
+\end{center}
+The red labels are flags. Pushing \texttt{B} swaps its children, so its left part is now the block of \texttt{D} with 3 elements, and position 0 lies inside it. Pushing \texttt{D} swaps its children too, and position 0 turns out to be \texttt{E}, the first element of \texttt{E D C B A}. The flags at \texttt{A}, \texttt{C} and \texttt{E} are still waiting because nobody has walked there yet.
+
+This walk also shows why split pushes a node before it reads the size of the left subtree. The left part of \texttt{B} had 1 element before the push and 3 after it.
+
+The flag is flipped, not set, so that two reversals cancel each other. A reversal never changes the sum of a block, so the block sums stay correct without extra work. The same holds for the minimum or the maximum, but not for anything that depends on order.
+
+\subsubsection{The code}
+Every idea above is a few lines of the notebook code. The excerpts keep the line numbers of the notebook file.
+
+The first eight lines are the six rules from the segment tree, with the same contract. Here they describe range add with range sum.
+
+\excerpt[Treap,merge,apply,comp]{../notebook/code/ds/treap.cpp}{1}{8}
+
+The nodes and the storage come next.
+
+\excerpt[make]{../notebook/code/ds/treap.cpp}{9}{18}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Line 10. Children \code|l| and \code|r|, subtree size \code|sz|, priority \code|pri|, own value \code|v|, block sum \code|s|, tag \code|lz| and reverse flag \code|rv|.
+\item Line 12. All nodes live in one vector and point at each other by index. Index 0 is the empty tree, with size 0 and sum \code|e|, so a missing child is just 0.
+\item Line 13. A fixed seed is fine in ICPC, which has no hacking, and it makes every run reproducible.
+\item Line 14. The tree that holds the whole sequence, empty at the start.
+\item Lines 15--18. A tree of one node with a random priority. It returns the index of the node.
+\end{itemize}
+\end{notes}
+
+When the children of a node change, \code|pull| recomputes its size and its block sum, reading the left child, the node and the right child in that order.
+
+\excerpt[pull,merge]{../notebook/code/ds/treap.cpp}{29}{33}
+
+Split follows the walk we drew, one call per node on the path.
+
+\excerpt[split,push,pull]{../notebook/code/ds/treap.cpp}{34}{46}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Line 35. Splitting an empty tree gives two empty trees.
+\item Line 36. Push before reading the children, because a waiting flag may swap them.
+\item Line 37. \code|ls| is \(L\), the number of elements before the root inside its tree.
+\item Lines 38--42. The cut falls before the root. The left subtree is split. The root keeps the part after the cut as its new left child and passes the part before the cut up.
+\item Lines 43--45. The cut falls after the root. The right subtree is split after the remaining \code|k - ls - 1| elements. The root keeps the part before the cut as its new right child and passes the part after the cut up.
+\end{itemize}
+\end{notes}
+
+Join compares the two roots and keeps one subtree of the winner, exactly as in the block picture.
+
+\excerpt[join,push,pull]{../notebook/code/ds/treap.cpp}{47}{55}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Line 48. If one tree is empty, the result is the other. One of the two indices is 0, so \code|a ^ b| is the other one.
+\item Lines 49--52. The root of \code|a| wins, keeps its left subtree, and its right subtree is joined with \code|b|.
+\item Lines 53--54. The root of \code|b| wins, keeps its right subtree, and \code|a| is joined with its left subtree.
+\item Both cases push before changing a child and pull after.
+\end{itemize}
+\end{notes}
+
+The operations are the recipes from before.
+
+\excerpt[insert,erase,on,update,reverse,query,split,join,make,put]{../notebook/code/ds/treap.cpp}{57}{80}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Lines 57--60. Split after \code|i|, then join the left piece, the new node and the right piece.
+\item Lines 61--64. Split after \code|i| and after one more, then join the outer pieces. The single node in the middle is never used again.
+\item Lines 66--71. \code|on| cuts out \([l, r)\), lets \code|f| act on the root of the middle tree and joins the three pieces back. The template lets \code|f| be any lambda.
+\item Lines 72--80. \code|update| tags the root, \code|reverse| flips its flag and \code|query| reads its block sum.
+\end{itemize}
+\end{notes}
+
+Finally the lazy part, which split and join have been calling all along.
+
+\excerpt[put,push,apply,comp]{../notebook/code/ds/treap.cpp}{19}{28}
+
+\begin{notes}[Reading the code]
+\begin{itemize}
+\item Line 20. The empty node must stay empty.
+\item Line 21. The own value counts as one element, and the new tag goes on top of the waiting one.
+\item Line 22. The block sum counts \code|sz| elements.
+\item Line 25. A reference to the node, safe because nothing here adds nodes. A reference kept across \code|make| could point at memory the vector has already left.
+\item Line 26. A waiting reversal swaps the children and passes the flag to both.
+\item Line 27. The waiting tag goes to both children, and both notes are cleared.
+\end{itemize}
+\end{notes}
+
+\begin{pitfall}
+Never keep a \code|Node&| across a call to \code|make|, never read the children of a node before pushing it, and never reverse with a merge that depends on order. When the positions never change, use a segment tree instead, which is several times faster.
+\end{pitfall}
