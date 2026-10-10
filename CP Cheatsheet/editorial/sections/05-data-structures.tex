@@ -1,5 +1,471 @@
 \section{Data Structures}
 
+\topic{Lazy Segment Tree}[\log n]
+
+{\small\color{muted} Life will be a lot easier if you read this after understanding the basic segment tree.\par}
+
+\begin{problem}
+Given an array \(a\) of length \(n\), we can do the following in \(\bigO{\log n}\).
+\begin{itemize}
+\item Update a whole range \([l, r)\). By update we mean an operation done to every element of the range, where the operation, written \(x \circ f\) for the update \(f\) applied to \(x\), must satisfy the following.
+\begin{enumerate}[label=\textup{(U\arabic*)},leftmargin=*]
+\item It can be applied to a whole range at once.
+\item Updates are closed under composition, \((x \circ g) \circ f = x \circ h\) for an update \(h\).
+\item Updates have an identity \(\mathrm{id}\), with \(x \circ \mathrm{id} = x\).
+\end{enumerate}
+\item Query a range \([l, r)\). By query we mean an operation that combines all elements of the range, where the operation, written \(x \oplus y\), must satisfy the following.
+\begin{enumerate}[label=\textup{(Q\arabic*)},leftmargin=*]
+\item It is associative, \((x \oplus y) \oplus z = x \oplus (y \oplus z)\).
+\item It has an identity \(e\), with \(e \oplus x = x \oplus e = x\).
+\end{enumerate}
+\end{itemize}
+\end{problem}
+
+\begin{notes}[Reading the definition]
+Remember that in a segment tree, each node holds the value of one range.
+\begin{enumerate}[label=\textup{(U\arabic*)},leftmargin=*]
+\item When we arrive at the node of a range \([l, r)\) that we want to update, we can update it using only its old value, the update and often the length of the range. Say the query is sum and we want to add \(c\) to \([l, r)\). \\
+After walking down the tree, we arrive at the node of \([l, r)\). \\
+We do not go deeper to update every leaf. \\
+We simply add \(c \cdot (r - l)\) to its value, as if \(c\) were added to every element below. \\
+Other updates with this property are the following.
+\begin{itemize}
+\item Setting every element to \(c\).
+\item Multiplying by \(c\) when the query is sum.
+\item Adding \(c\) when the query is minimum.
+\end{itemize}
+It is a good exercise to figure out how to apply each one.
+\item A node may get a second update before the first one reaches its children, and then the two must become one. Some updates that satisfy this property are the following.
+\begin{itemize}
+\item Adding. Adding \(c\) and then \(d\) is the same as adding \(c + d\).
+\item Multiplying. Multiplying by \(c\) and then by \(d\) is the same as multiplying by \(cd\).
+\item Setting. Setting to \(c\) and then to \(d\) is the same as setting to \(d\).
+\item Multiplying and adding. \\
+Doing \(x \mapsto ax + b\) and then \(x \mapsto cx + d\) is the same as \(x \mapsto acx + bc + d\). \\
+This is like \(c(ax + b) + d\). So any operations of this type can be merged into one.
+\end{itemize}
+Other updates with this property are the following.
+\begin{itemize}
+\item XOR with \(c\).
+\item Setting and adding mixed together.
+\item Taking the maximum with \(c\).
+\end{itemize}
+It is a good exercise to figure out how to merge each one.
+\end{enumerate}
+\end{notes}
+
+\subsubsection{Tree Structure}
+We draw the segment tree as a stack of bricks. Every node is a brick exactly as wide as its range, and it sits on top of its two halves. The root covers \([0, n)\). A node covering \([\mathit{lo}, \mathit{hi})\) splits at \(m = \floor{(\mathit{lo} + \mathit{hi}) / 2}\) into \([\mathit{lo}, m)\) and \([m, \mathit{hi})\), and its value is the query of its range. The bricks of width one are the leaves, one per element. From here on the query is sum.
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm]
+  \brick{0}{6}{3}{23}
+  \brick{0}{3}{2}{8}
+  \brick{3}{6}{2}{15}
+  \foreach \lo/\hi/\v in {0/1/3, 1/3/5, 3/4/1, 4/6/14}
+    {\brick{\lo}{\hi}{1}{\v}}
+  \foreach \lo/\hi/\v in {1/2/1, 2/3/4, 4/5/5, 5/6/9}
+    {\brick{\lo}{\hi}{0}{\v}}
+  \foreach \i in {0,...,5}
+    \node[note] at (\i, -0.9) {\i};
+  \begin{scope}[xshift=55mm]
+    \foreach \n/\lo/\hi/\d/\v in {n0/0/6/0/23, n1/0/3/1/8, n2/3/6/1/15,
+        n3/0/1/2/3, n4/1/3/2/5, n5/3/4/2/1, n6/4/6/2/14, n7/1/2/3/1,
+        n8/2/3/3/4, n9/4/5/3/5, n10/5/6/3/9}
+      \node[tn] (\n) at ({9mm * ((\lo + \hi) / 2 - 0.5)}, {23.4mm - 10mm * \d}) {\v};
+    \foreach \a/\b in {n0/n1, n0/n2, n1/n3, n1/n4, n2/n5, n2/n6, n4/n7,
+        n4/n8, n6/n9, n6/n10}
+      \draw[draw=ink!55,thin] (\a) -- (\b);
+    \foreach \n/\i in {n3/0, n7/1, n8/2, n5/3, n9/4, n10/5}
+      \node[note,anchor=north] at ([yshift=-0.5mm]\n.south) {\i};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+On the right is the same tree drawn the usual way, one circle per brick. When \(n\) is not a power of two, the two halves of a range can differ in size, so some leaves sit higher than others. Here \(n = 6\), and the leaves 0 and 3 stop one level early.
+
+\subsubsection{Lazy Propagation}
+Let's add 2 to the range \([2, 6)\). The update walks down the tree just like a query. A brick outside the range is skipped. A brick partly inside is split, and we visit both halves. A brick fully inside is updated at once using \textup{(U1)}. The walk stops there.
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm,plain/.style={},
+    gone/.style={draw=muted,densely dashed,text=muted}]
+  \brick{0}{6}{3}{23}
+  \brick{0}{3}{2}{8}
+  \brick[pb]{3}{6}{2}{15}
+  \brick[pc]{0}{1}{1}{3}
+  \brick{1}{3}{1}{5}
+  \brick[gone]{3}{4}{1}{\textcolor{muted}{1}}
+  \brick[gone]{4}{6}{1}{\textcolor{muted}{14}}
+  \brick[pc]{1}{2}{0}{1}
+  \brick[pb]{2}{3}{0}{4}
+  \brick[gone]{4}{5}{0}{\textcolor{muted}{5}}
+  \brick[gone]{5}{6}{0}{\textcolor{muted}{9}}
+  \foreach \i in {0,...,5}
+    \node[note] at (\i, -0.9) {\i};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt},muted]
+    (1.55, -1.45) -- (5.45, -1.45)
+    node[midway,below=5pt,note] {add 2 to \([2, 6)\)};
+  \begin{scope}[xshift=55mm]
+    \foreach \n/\lo/\hi/\d/\v/\s in {n0/0/6/0/23/plain, n1/0/3/1/8/plain,
+        n2/3/6/1/15/pb, n3/0/1/2/3/pc, n4/1/3/2/5/plain, n5/3/4/2/1/gone,
+        n6/4/6/2/14/gone, n7/1/2/3/1/pc, n8/2/3/3/4/pb, n9/4/5/3/5/gone,
+        n10/5/6/3/9/gone}
+      \node[tn,\s] (\n) at ({9mm * ((\lo + \hi) / 2 - 0.5)}, {23.4mm - 10mm * \d}) {\v};
+    \foreach \a/\b/\s in {n0/n1/plain, n0/n2/plain, n1/n3/plain, n1/n4/plain,
+        n2/n5/gone, n2/n6/gone, n4/n7/plain, n4/n8/plain, n6/n9/gone,
+        n6/n10/gone}
+      \draw[draw=ink!55,thin,\s] (\a) -- (\b);
+    \foreach \n/\i in {n3/0, n7/1, n8/2, n5/3, n9/4, n10/5}
+      \node[note,anchor=north] at ([yshift=-0.5mm]\n.south) {\i};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The amber bricks are fully inside, the grey ones are outside, and the dashed ones are never visited. The walk stops at \([3, 6)\) without going down, even though it covers three elements.
+
+Each amber brick gets its new sum straight from its old one. The leaf \([2, 3)\) becomes \(4 + 2 = 6\), and \([3, 6)\) becomes \(15 + 2 \cdot 3 = 21\). On the way back up, every brick that was split recomputes its sum from its two halves. These are the blue bricks.
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm,plain/.style={},
+    gone/.style={draw=muted,densely dashed,text=muted}]
+  \brick[pa]{0}{6}{3}{31}
+  \brick[pa]{0}{3}{2}{10}
+  \brick[pb]{3}{6}{2}{21}
+  \node[font=\scriptsize,text=warncolor,anchor=east] at (5.4, 2.4) {\(+2\)};
+  \brick{0}{1}{1}{3}
+  \brick[pa]{1}{3}{1}{7}
+  \brick[gone]{3}{4}{1}{\textcolor{muted}{1}}
+  \brick[gone]{4}{6}{1}{\textcolor{muted}{14}}
+  \brick{1}{2}{0}{1}
+  \brick[pb]{2}{3}{0}{6}
+  \brick[gone]{4}{5}{0}{\textcolor{muted}{5}}
+  \brick[gone]{5}{6}{0}{\textcolor{muted}{9}}
+  \foreach \i in {0,...,5}
+    \node[note] at (\i, -0.9) {\i};
+  \begin{scope}[xshift=55mm]
+    \foreach \n/\lo/\hi/\d/\v/\s in {n0/0/6/0/31/pa, n1/0/3/1/10/pa,
+        n2/3/6/1/21/pb, n3/0/1/2/3/plain, n4/1/3/2/7/pa, n5/3/4/2/1/gone,
+        n6/4/6/2/14/gone, n7/1/2/3/1/plain, n8/2/3/3/6/pb, n9/4/5/3/5/gone,
+        n10/5/6/3/9/gone}
+      \node[tn,\s] (\n) at ({9mm * ((\lo + \hi) / 2 - 0.5)}, {23.4mm - 10mm * \d}) {\v};
+    \node[font=\scriptsize,text=warncolor,anchor=west] at (n2.east) {\(+2\)};
+    \foreach \a/\b/\s in {n0/n1/plain, n0/n2/plain, n1/n3/plain, n1/n4/plain,
+        n2/n5/gone, n2/n6/gone, n4/n7/plain, n4/n8/plain, n6/n9/gone,
+        n6/n10/gone}
+      \draw[draw=ink!55,thin,\s] (\a) -- (\b);
+    \foreach \n/\i in {n3/0, n7/1, n8/2, n5/3, n9/4, n10/5}
+      \node[note,anchor=north] at ([yshift=-0.5mm]\n.south) {\i};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The sums from \([3, 6)\) upward are right, but the dashed bricks below \([3, 6)\) still hold their old values. So \([3, 6)\) keeps the update as a tag, the red \(+2\), which means every element below it still needs 2 added. The tag waits there until a later walk has to go below it.
+
+The idea of lazy propagation is that we are allowed to be lazy. We do not update the leaves below a node until someone actually asks about them. The nodes above never look at single leaves anyway. They only need the value of a whole range, and \textup{(U1)} gives that in one step.
+
+\subsubsection{Merging Tags}
+Before any query, let's add 2 to \([3, 6)\) once more. The walk goes straight to \([3, 6)\), which is fully inside, and stops there. Its sum becomes \(21 + 2 \cdot 3 = 27\). But \([3, 6)\) still holds the first \(+2\), which has not reached its children yet. By \textup{(U2)} the two updates merge into one, so the brick keeps a single tag \(+4\) to be pushed later.
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm,plain/.style={},
+    gone/.style={draw=muted,densely dashed,text=muted}]
+  \brick[pa]{0}{6}{3}{37}
+  \brick{0}{3}{2}{10}
+  \brick[pb]{3}{6}{2}{27}
+  \node[font=\scriptsize,text=warncolor,anchor=east] at (5.4, 2.4) {\(+4\)};
+  \brick{0}{1}{1}{3}
+  \brick{1}{3}{1}{7}
+  \brick[gone]{3}{4}{1}{\textcolor{muted}{1}}
+  \brick[gone]{4}{6}{1}{\textcolor{muted}{14}}
+  \brick{1}{2}{0}{1}
+  \brick{2}{3}{0}{6}
+  \brick[gone]{4}{5}{0}{\textcolor{muted}{5}}
+  \brick[gone]{5}{6}{0}{\textcolor{muted}{9}}
+  \foreach \i in {0,...,5}
+    \node[note] at (\i, -0.9) {\i};
+  \begin{scope}[xshift=55mm]
+    \foreach \n/\lo/\hi/\d/\v/\s in {n0/0/6/0/37/pa, n1/0/3/1/10/plain,
+        n2/3/6/1/27/pb, n3/0/1/2/3/plain, n4/1/3/2/7/plain, n5/3/4/2/1/gone,
+        n6/4/6/2/14/gone, n7/1/2/3/1/plain, n8/2/3/3/6/plain, n9/4/5/3/5/gone,
+        n10/5/6/3/9/gone}
+      \node[tn,\s] (\n) at ({9mm * ((\lo + \hi) / 2 - 0.5)}, {23.4mm - 10mm * \d}) {\v};
+    \node[font=\scriptsize,text=warncolor,anchor=west] at (n2.east) {\(+4\)};
+    \foreach \a/\b/\s in {n0/n1/plain, n0/n2/plain, n1/n3/plain, n1/n4/plain,
+        n2/n5/gone, n2/n6/gone, n4/n7/plain, n4/n8/plain, n6/n9/gone,
+        n6/n10/gone}
+      \draw[draw=ink!55,thin,\s] (\a) -- (\b);
+    \foreach \n/\i in {n3/0, n7/1, n8/2, n5/3, n9/4, n10/5}
+      \node[note,anchor=north] at ([yshift=-0.5mm]\n.south) {\i};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The bricks below \([3, 6)\) have now missed two updates, yet they still wait for just one tag.
+
+\subsubsection{Push}
+Now let's ask for the element at position 4, the range \([4, 5)\). The walk reaches \([3, 6)\). It is only partly inside, so the walk has to go down. But the bricks below are out of date. So before going down, \([3, 6)\) pushes its tag to its two halves. Each half applies the \(+4\) to its own sum using \textup{(U1)} and keeps the tag for its own children. The tag on \([3, 6)\) is then reset to \(\mathrm{id}\), because nothing below it is waiting anymore.
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm,plain/.style={},
+    gone/.style={draw=muted,densely dashed,text=muted}]
+  \brick{0}{6}{3}{37}
+  \brick{0}{3}{2}{10}
+  \brick[hot]{3}{6}{2}{27}
+  \brick{0}{1}{1}{3}
+  \brick{1}{3}{1}{7}
+  \brick[pb]{3}{4}{1}{5}
+  \brick[pb]{4}{6}{1}{}
+  \node[font=\small] at (4.25, 1.2) {22};
+  \node[font=\scriptsize,text=warncolor,anchor=east] at (5.4, 1.2) {\(+4\)};
+  \brick{1}{2}{0}{1}
+  \brick{2}{3}{0}{6}
+  \brick[gone]{4}{5}{0}{\textcolor{muted}{5}}
+  \brick[gone]{5}{6}{0}{\textcolor{muted}{9}}
+  \foreach \i in {0,...,5}
+    \node[note] at (\i, -0.9) {\i};
+  \begin{scope}[xshift=55mm]
+    \foreach \n/\lo/\hi/\d/\v/\s in {n0/0/6/0/37/plain, n1/0/3/1/10/plain,
+        n2/3/6/1/27/hot, n3/0/1/2/3/plain, n4/1/3/2/7/plain, n5/3/4/2/5/pb,
+        n6/4/6/2/22/pb, n7/1/2/3/1/plain, n8/2/3/3/6/plain, n9/4/5/3/5/gone,
+        n10/5/6/3/9/gone}
+      \node[tn,\s] (\n) at ({9mm * ((\lo + \hi) / 2 - 0.5)}, {23.4mm - 10mm * \d}) {\v};
+    \node[font=\scriptsize,text=warncolor,anchor=west] at (n6.east) {\(+4\)};
+    \foreach \a/\b/\s in {n0/n1/plain, n0/n2/plain, n1/n3/plain, n1/n4/plain,
+        n2/n5/plain, n2/n6/plain, n4/n7/plain, n4/n8/plain, n6/n9/gone,
+        n6/n10/gone}
+      \draw[draw=ink!55,thin,\s] (\a) -- (\b);
+    \foreach \n/\i in {n3/0, n7/1, n8/2, n5/3, n9/4, n10/5}
+      \node[note,anchor=north] at ([yshift=-0.5mm]\n.south) {\i};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The red brick is the one that pushed. The leaf 3 became \(1 + 4 = 5\), and \([4, 6)\) became \(14 + 4 \cdot 2 = 22\) and now holds the \(+4\) itself. Both updates travel down together in one push.
+
+The same happens one level down. \([4, 6)\) is partly inside too, so it pushes its \(+4\) to the leaves 4 and 5 before the walk goes there.\enlargethispage{2\baselineskip}
+
+\begin{center}
+\begin{tikzpicture}[x=6.5mm,y=6.5mm,plain/.style={}]
+  \brick{0}{6}{3}{37}
+  \brick{0}{3}{2}{10}
+  \brick{3}{6}{2}{27}
+  \brick{0}{1}{1}{3}
+  \brick{1}{3}{1}{7}
+  \brick{3}{4}{1}{5}
+  \brick[hot]{4}{6}{1}{22}
+  \brick{1}{2}{0}{1}
+  \brick{2}{3}{0}{6}
+  \brick[pb]{4}{5}{0}{9}
+  \brick[pb]{5}{6}{0}{13}
+  \foreach \i in {0,...,5}
+    \node[note] at (\i, -0.9) {\i};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt},muted]
+    (3.55, -1.45) -- (4.45, -1.45)
+    node[midway,below=5pt,note] {the answer, 9};
+  \begin{scope}[xshift=55mm]
+    \foreach \n/\lo/\hi/\d/\v/\s in {n0/0/6/0/37/plain, n1/0/3/1/10/plain,
+        n2/3/6/1/27/plain, n3/0/1/2/3/plain, n4/1/3/2/7/plain, n5/3/4/2/5/plain,
+        n6/4/6/2/22/hot, n7/1/2/3/1/plain, n8/2/3/3/6/plain, n9/4/5/3/9/pb,
+        n10/5/6/3/13/pb}
+      \node[tn,\s] (\n) at ({9mm * ((\lo + \hi) / 2 - 0.5)}, {23.4mm - 10mm * \d}) {\v};
+    \foreach \a/\b in {n0/n1, n0/n2, n1/n3, n1/n4, n2/n5, n2/n6, n4/n7,
+        n4/n8, n6/n9, n6/n10}
+      \draw[draw=ink!55,thin] (\a) -- (\b);
+    \foreach \n/\i in {n3/0, n7/1, n8/2, n5/3, n9/4, n10/5}
+      \node[note,anchor=north] at ([yshift=-0.5mm]\n.south) {\i};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The walk ends at the leaf \([4, 5)\), which now holds the right value 9. A tag only moves when a walk passes through its brick, one level at a time.
+
+\subsubsection{The Six Lines}
+Every rule from the green box is one line of code. Here are the first eight lines of the notebook code, set up for adding with sum.
+
+\excerpt[SegTree,merge,apply,comp]{../notebook/code/ds/segtree.cpp}{1}{8}
+
+\begin{notes}[Reading the code]
+\begin{lines}
+\item[Lines 2--3] \code|T| is the type of a value (sum). \code|L| is the type of a tag (the amount to add).
+\item[Line 4] \code|e| is the identity of the query from \textup{(Q2)}. An empty range has sum 0.
+\item[Line 5] \code|id| is the update that changes nothing from \textup{(U3)}, which is adding 0.
+\item[Line 6] \code|merge| is the query \(x \oplus y\) from \textup{(Q1)}.
+\item[Line 7] \code|apply| is \(x \circ f\) on a whole range from \textup{(U1)}. The old sum alone is not enough. Adding \(f\) to \(k\) elements raises the sum by \(f \cdot k\), so the code also passes the length of the range.
+\item[Line 8] \code|comp(f, g)| merges two tags from \textup{(U2)}. It means \(g\) first and then \(f\).
+\end{lines}
+\end{notes}
+
+To use the tree for another update or query, only these lines change. Here are two more setups.
+
+\textbf{Adding with sum and minimum together.} A value can hold several answers at once. Here it is a struct with the sum and the minimum of its range, and \code|merge| combines both. \\
+Adding \(f\) raises the sum by \(f\) times the length and the minimum by \(f\).
+
+\begin{cpp}
+  struct T { ll sum, mn; };
+  typedef ll L;
+  T e = {0, LLONG_MAX};
+  L id = 0;
+  T merge(T a, T b) {
+    return {a.sum + b.sum, min(a.mn, b.mn)};
+  }
+  T apply(T x, L f, int len) {
+    return {x.sum + f * len, x.mn + f};
+  }
+  L comp(L f, L g) { return f + g; }
+\end{cpp}
+
+\textbf{Multiplying and adding with sum.} A tag is a pair \((a, b)\) for \(x \mapsto ax + b\). On a whole range it turns the sum into \(a\) times the sum plus \(b\) times the length. Merging uses the formula from the grey box. In a real problem every product is taken modulo the given prime.
+
+\begin{cpp}
+  typedef ll T;
+  typedef pair<ll, ll> L; // x -> a x + b
+  T e = 0;
+  L id = {1, 0};
+  T merge(T a, T b) { return a + b; }
+  T apply(T x, L f, int len) {
+    return f.first * x + f.second * len;
+  }
+  L comp(L f, L g) {
+    return {f.first * g.first, f.first * g.second + f.second};
+  }
+\end{cpp}
+
+\textbf{Any other pair.} To build the lines for a new pair, answer three questions. The query side only needs \code|e|, the result of an empty range.
+\begin{enumerate}[label=\textup{(U\arabic*)},leftmargin=*]
+\item Given the value of a range and its length, what is its value after \(f\)? This is \code|apply|.
+\item Doing \(g\) and then \(f\), which single update is that? This is \code|comp|.
+\item Which update changes nothing? This is \code|id|.
+\end{enumerate}
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+Update & Query & \code|id| & \code|apply(x, f, len)| & \code|comp(f, g)| \\
+\midrule
+add \(f\) & sum & \(0\) & \(x + f \cdot \mathit{len}\) & \(f + g\) \\
+add \(f\) & minimum & \(0\) & \(x + f\) & \(f + g\) \\
+set to \(f\) & sum & none & \(f \cdot \mathit{len}\) & \(f\) \\
+set to \(f\) & minimum & none & \(f\) & \(f\) \\
+multiply by \(f\) & sum & \(1\) & \(f \cdot x\) & \(f \cdot g\) \\
+maximum with \(f\) & maximum & \(-\infty\) & \(\max(x, f)\) & \(\max(f, g)\) \\
+flip a 0/1 array & count of ones & \(0\) & \(\mathit{len} - x\) if \(f = 1\) & \(f \operatorname{xor} g\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The \code|id| does not have to be a real update. Its only job is to say that nothing is waiting to be pushed. Setting has no update that changes nothing, so none is any value that never appears as a real tag, such as \code|LLONG_MIN|. With none, \code|apply| returns \(x\) and \code|comp| returns \(g\).
+
+With some creativity and careful coding, many more operations fit into these six lines.
+
+\subsubsection{The Code}
+Brace yourself. Understand the concepts first, and every line of code below should look familiar.
+
+\excerpt[SegTree,build,merge]{../notebook/code/ds/segtree.cpp}{10}{22}
+
+\begin{notes}[Reading the code]
+\begin{lines}
+\item[Lines 10--12] The length \code|n|, the values \code|t| and the tags \code|lz|, one value and one tag per node.
+\item[Line 13] Node 1 is the root, and the halves of node \code|v| are \code|2 * v| and \code|2 * v + 1|. \\
+Four times \code|n| nodes are always enough. \\
+This builds an empty tree with \code|n| elements, every value \code|e| and every tag \code|id|.
+\item[Lines 14--16] Builds the tree from an array. Starts at the root, which covers \code|[0, n)|.
+\item[Line 17] \code|build| fills node \code|v|, which covers \code|[lo, hi)|.
+\item[Line 18] A leaf is a brick of width one. \\
+Its range \code|[lo, hi)| holds a single element, so \code|lo| is its index in the array. \\
+It copies its element from the array and stops.
+\item[Line 19] Every other node splits at \code|m|, just like the bricks.
+\item[Line 20] It builds its left half \code|[lo, m)| and its right half \code|[m, hi)| first.
+\item[Line 21] Then it merges the two halves into its own value.
+\end{lines}
+\end{notes}
+
+The two helpers are the two figures from Lazy Propagation and Push.
+
+\excerpt[put,push,apply,comp]{../notebook/code/ds/segtree.cpp}{23}{29}
+
+\begin{notes}[Reading the code]
+\begin{lines}
+\item[Line 24] \code|put| updates a whole brick. \\
+Its value takes \code|f| at once by \textup{(U1)}. \\
+Its tag merges \code|f| on top of the waiting one by \textup{(U2)}.
+\item[Lines 27--28] \code|push| hands the tag to both halves with \code|put|, then resets it to \code|id| from \textup{(U3)}.
+\end{lines}
+\end{notes}
+
+The update is the walk from Lazy Propagation.
+
+\excerpt[update,put,push,merge]{../notebook/code/ds/segtree.cpp}{31}{40}
+
+\begin{notes}[Reading the code]
+\begin{lines}
+\item[Line 33] A brick outside the range is skipped.
+\item[Line 34] A brick fully inside takes the update with \code|put|, and the walk stops.
+\item[Line 36] A brick partly inside pushes its tag before the walk goes down.
+\item[Line 39] On the way back up, the brick recomputes its value from its halves.
+\end{lines}
+\end{notes}
+
+The query walks the same way.
+
+\excerpt[query,push,merge]{../notebook/code/ds/segtree.cpp}{42}{50}
+
+\begin{notes}[Reading the code]
+\begin{lines}
+\item[Line 44] A brick outside gives \code|e|, which changes nothing in a merge by \textup{(Q2)}.
+\item[Line 45] A brick fully inside gives its value.
+\item[Line 47] A brick partly inside pushes first, exactly as in Push.
+\item[Lines 48--49] The left half is merged first, so the elements stay in order.
+\end{lines}
+\end{notes}
+
+Last, \code|set| replaces a single element.
+
+\excerpt[set,push,merge]{../notebook/code/ds/segtree.cpp}{52}{60}
+
+\begin{notes}[Reading the code]
+\begin{lines}
+\item[Line 54] At the leaf, the new value replaces the old one.
+\item[Line 56] Push on the way down. \\
+Otherwise a tag waiting above would later change the new value.
+\item[Line 59] Recompute on the way back up.
+\end{lines}
+\end{notes}
+
+\subsubsection{Practice}
+After fully understanding the lazy segment tree, it is time to put it to the test.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Problem & Level & Practices \\
+\midrule
+\href{https://cses.fi/problemset/task/1651}{Range Update Queries} & Easy & adding, then reading one element \\
+\href{https://cses.fi/problemset/task/1735}{Range Updates and Sums} & Medium & setting and adding mixed together \\
+\href{https://atcoder.jp/contests/practice2/tasks/practice2_k}{Range Affine Range Sum} & Medium & multiplying and adding \\
+\href{https://atcoder.jp/contests/practice2/tasks/practice2_l}{Lazy Segment Tree} & Medium & a value with several fields \\
+\href{https://atcoder.jp/contests/abc357/tasks/abc357_f}{Two Sequence Queries} & Medium & a sum of products \\
+\href{https://atcoder.jp/contests/abc322/tasks/abc322_f}{Vacation Query} & Medium & longest run of ones, with flips \\
+\href{https://codeforces.com/problemset/problem/1477/B}{Nezzar and Binary String} & Medium & setting, solved backwards \\
+\href{https://cses.fi/problemset/task/1736}{Polynomial Queries} & Hard & a tag that depends on position \\
+\href{https://codeforces.com/problemset/problem/242/E}{XOR on Segment} & Hard & xor on a range \\
+\href{https://codeforces.com/problemset/problem/1320/C}{World of Darkraft: Battle for Azathoth} & Hard & a sweep with adding and max \\
+\href{https://codeforces.com/problemset/problem/1555/E}{Boring Segments} & Hard & two pointers with adding and min \\
+\href{https://codeforces.com/problemset/problem/1263/E}{Editor} & Hard & bracket depth, prefix min and max \\
+\href{https://codeforces.com/problemset/problem/620/E}{New Year Tree} & Hard & colors as a bitmask on a subtree \\
+\href{https://codeforces.com/problemset/problem/52/C}{Circular RMQ} & Hard & ranges that wrap around \\
+\href{https://codeforces.com/problemset/problem/1179/C}{Serge and Dining Room} & Hard & walking down to a position \\
+\href{https://codeforces.com/problemset/problem/1557/D}{Ezzat and Grid} & Hard & a dp with max over ranges \\
+\href{https://codeforces.com/problemset/problem/718/C}{Sasha and Array} & Very hard & matrices as values and tags \\
+\href{https://codeforces.com/problemset/problem/558/E}{A Simple Task} & Very hard & sorting a substring \\
+\href{https://codeforces.com/problemset/problem/803/G}{Periodic RMQ Problem} & Very hard & a huge array, compressed \\
+\href{https://codeforces.com/problemset/problem/817/F}{MEX Queries} & Very hard & set, clear and flip, then the first gap \\
+\href{https://codeforces.com/problemset/problem/1114/F}{Please, another Queries on Array?} & Very hard & products and a bitmask of primes \\
+\href{https://codeforces.com/problemset/problem/446/C}{DZY Loves Fibonacci Numbers} & Very hard & Fibonacci sequences as tags \\
+\href{https://codeforces.com/problemset/problem/1638/E}{Colorful Operations} & Very hard & coloring ranges, adding per color \\
+\href{https://codeforces.com/problemset/problem/580/E}{Kefa and Watch} & Very hard & setting, with string hashes \\
+\href{https://codeforces.com/problemset/problem/266/E}{More Queries to Array...} & Very hard & setting, with sums of powers \\
+\href{https://codeforces.com/problemset/problem/1373/G}{Pawns} & Very hard & adding, with a clever value \\
+\href{https://codeforces.com/problemset/problem/1371/F}{Raging Thunder} & Very hard & flipping directions, many fields \\
+\href{https://codeforces.com/problemset/problem/280/D}{k-Maximum Subsequence Sum} & Very hard & negating a range, best subarray \\
+\bottomrule
+\end{tabular}
+\end{center}
+
 \topic{Implicit Treap}[\log n]
 
 \begin{problem}
@@ -11,7 +477,6 @@ Given an array \(a\) of length \(n\), we can do the following in \(\bigO{\log n}
 
 \begin{center}
 \begin{tikzpicture}[x=6.5mm,y=6.5mm]
-  % split after 3 elements
   \foreach \c [count=\i from 0] in {A,B,C}
     \node[cell,pa] at (\i, 0) {\c};
   \foreach \c [count=\i from 3] in {D,E}
@@ -25,7 +490,6 @@ Given an array \(a\) of length \(n\), we can do the following in \(\bigO{\log n}
   \node[note] at (0.6, -3.1) {left piece};
   \node[note] at (3.9, -3.1) {right piece};
 
-  % cut [2, 5) out and paste it in front
   \begin{scope}[xshift=55mm]
     \foreach \c [count=\i from 0] in {A,B}
       \node[cell,pa] at (\i, 0) {\c};
@@ -161,7 +625,6 @@ Many trees spell the same array, so we need a rule that picks one. Every node ge
 
 \begin{center}
 \begin{tikzpicture}[tree]
-  % first priorities
   \node[tn,label={[note]right:9}] at (0, 0) {B}
     child {node[label={[note]left:3}] {A}}
     child {node[label={[note]right:7}] {D}
@@ -173,7 +636,6 @@ Many trees spell the same array, so we need a rule that picks one. Every node ge
       \node[note] at (\i, -0.9) {\p};
     }
   \end{scope}
-  % the same array with other priorities
   \node[tn,label={[note]right:9}] at (75mm, 0) {E}
     child {node[label={[note]left:8}] {A}
       child[missing]
@@ -411,7 +873,6 @@ When the root of \code|b| wins, it is the mirror image. Its right subtree comes 
 \begin{center}
 \begin{tikzpicture}[blk/.style={draw=ink!55,minimum height=6.5mm,
     inner sep=0pt,font=\footnotesize,anchor=west}]
-  % the root of a wins
   \node[note,anchor=west] at (0, 7mm) {the root of \texttt{a} wins};
   \node[blk,pa,minimum width=28mm] at (0, 0) {left subtree};
   \node[blk,pa,hot,minimum width=12mm] at (28mm, 0) {root};
@@ -423,7 +884,6 @@ When the root of \code|b| wins, it is the mirror image. Its right subtree comes 
   \draw[decorate,decoration={brace,mirror,amplitude=4pt},muted]
     (40.5mm, -4.5mm) -- (99.5mm, -4.5mm)
     node[midway,below=5pt,note] {joined next, becomes the right child};
-  % the root of b wins
   \begin{scope}[yshift=-28mm]
     \node[note,anchor=west] at (0, 7mm) {the root of \texttt{b} wins};
     \node[blk,pa,minimum width=32mm] at (0, 0) {all of \texttt{a}};
@@ -561,7 +1021,6 @@ With split and join, every operation in the green box is a short recipe. We cut 
 
 \begin{center}
 \begin{tikzpicture}[x=6.5mm,y=6.5mm,px/.style={fill=defcolor!22}]
-  % insert X at position 3
   \foreach \c [count=\i from 0] in {A,B,C,D,E,F,G,H}
     \node[cell] at (\i, 0) {\c};
   \draw[cut] (2.5, 0.8) -- (2.5, -0.8);
@@ -579,7 +1038,6 @@ With split and join, every operation in the green box is a short recipe. We cut 
     \node[cell,pb] at (\i, -4.4) {\c};
   \node[note,text=defcolor] at (4, -5.3) {join the three pieces};
 
-  % erase position 3
   \begin{scope}[xshift=72mm]
     \foreach \c [count=\i from 0] in {A,B,C,D,E,F,G,H}
       \node[cell] at (\i, 0) {\c};
@@ -607,7 +1065,6 @@ With split and join, every operation in the green box is a short recipe. We cut 
 
 \begin{center}
 \begin{tikzpicture}[x=6.5mm,y=6.5mm,px/.style={fill=defcolor!22}]
-  % reverse the block [2, 5)
   \foreach \c [count=\i from 0] in {A,B,C,D,E,F,G,H}
     \node[cell] at (\i, 0) {\c};
   \draw[cut] (1.5, 0.8) -- (1.5, -0.8);
@@ -628,7 +1085,6 @@ With split and join, every operation in the green box is a short recipe. We cut 
     \node[cell,pc] at (\i, -4.4) {\c};
   \node[note,text=defcolor] at (3.5, -5.3) {reversed, joined back};
 
-  % shift the block [2, 6) right by one
   \begin{scope}[xshift=72mm]
     \foreach \c [count=\i from 0] in {A,B,C,D,E,F,G,H}
       \node[cell] at (\i, 0) {\c};
@@ -868,7 +1324,6 @@ An update can start from any old version.
 
 \begin{center}
 \begin{tikzpicture}[x=6.5mm,y=6.5mm]
-  % version 1 grows from version 0, versions 2 and 3 both grow from 1
   \foreach \v [count=\i from 0] in {0,0,0,0}
     \node[cell] at (\i, 0) {\v};
   \node[note,anchor=east] at (-0.8, 0) {version 0};
@@ -973,7 +1428,6 @@ So far version~0 was a full tree of zeros, built before the first update. The co
       child {node[pb,id={right:t[3]}] {3}}}
     child {node[pc,id={right:t[0]}] {0}};
   \node[note] at (60mm, -30mm) {version 1, built from root 0};
-  % the same nodes, as they sit in memory
   \begin{scope}[x=6.5mm,y=6.5mm,xshift=-3.25mm,yshift=-54mm]
     \node[note] at (0.5, 1.8) {\texttt{root}};
     \foreach \v/\u/\c in {0/0/pc, 1/1/pb} {
@@ -1076,7 +1530,6 @@ The trick is to build the tree over values instead of positions. Leaf \(x\) coun
     \node[cell] at (\i, 0) {\v};
   }
   \node[note,anchor=east] at (-0.7, 0) {\(a\)};
-  % counts by value, one row per version
   \begin{scope}[xshift=10*6.5mm]
     \foreach \x in {0,...,3}
       \node[note] at (\x, 0.9) {\x};

@@ -31,7 +31,6 @@
 
 \AtBeginDocument{\color{ink}}
 \frenchspacing
-% Prose lines never break inside a word, hyphenated or not.
 \hyphenpenalty=10000
 \exhyphenpenalty=10000
 \emergencystretch=2em
@@ -48,6 +47,8 @@
 \setlength{\parskip}{5pt plus 1pt}
 \setlist{itemsep=2pt,topsep=3pt,parsep=0pt,leftmargin=1.4em}
 \setlist[enumerate,1]{label=\textup{(\arabic*)}}
+\newlist{lines}{itemize}{1}
+\setlist[lines]{label={},leftmargin=5.8em,labelwidth=5.2em,labelsep=0.6em,align=left}
 \setcounter{secnumdepth}{2}
 \setcounter{tocdepth}{2}
 \tikzset{>=Stealth}
@@ -67,6 +68,7 @@
   {\normalfont\normalsize\bfseries}
   {}{0pt}{}[.]
 \titlespacing*{\section}{0pt}{18pt}{8pt}
+\newcommand{\sectionbreak}{\clearpage}
 \titlespacing*{\subsection}{0pt}{12pt}{4pt}
 \titlespacing*{\subsubsection}{0pt}{6pt}{0.5em}
 
@@ -147,7 +149,6 @@
   before upper={\textbf{\textcolor{warncolor}{#1.}}\ }
 }
 
-% Code has numbered lines, so the text can point at them.
 \newcommand{\codesize}{\fontsize{8.5}{10.2}\selectfont}
 \lstdefinestyle{cp}{
   language=C++,
@@ -208,13 +209,9 @@
   #1
 }
 \newcommand{\code}{\lstinline[style=cpinline]}
-% Part of a notebook file, keeping the file's own line numbers.
-% \excerpt[split,join]{../notebook/code/ds/treap.cpp}{34}{46}
 \NewDocumentCommand{\excerpt}{O{} m m m}{%
   \cppfile[listing options={style=cp,firstline=#3,lastline=#4,
     firstnumber=#3,emph={#1}}]{#2}}
-% Small trees: \begin{tikzpicture}[tree] \node[tn] {B} child {node {A}};
-% Child nodes get tn automatically, labels stay plain.
 \tikzset{
   tn/.style={circle,draw=ink!55,thin,solid,fill=white,minimum size=7mm,
     inner sep=0pt,font=\small},
@@ -225,21 +222,21 @@
     every child node/.style={tn},
     edge from parent/.style={draw=ink!55,thin,solid}
   },
-  % sequences drawn as rows of cells, cut by dashed red lines
   cell/.style={draw=ink!55,fill=white,minimum size=6.5mm,
     inner sep=0pt,font=\small},
   cut/.style={warncolor,thick,dashed},
   note/.style={font=\footnotesize,text=muted},
-  % piece colors, for cells and tree nodes alike
   pa/.style={fill=thmcolor!18},
   pb/.style={fill=excolor!25},
   pc/.style={fill=muted!22},
-  % a highlighted path in a tree
   hot/.style={draw=warncolor,very thick},
-  % an open spot in a tree under construction, and an edge just created
   slot/.style={tn,dashed,draw=muted,text=muted},
   new/.style={draw=defcolor,thick,densely dotted}
 }
+\NewDocumentCommand{\brick}{O{} m m m m}{%
+  \draw[draw=ink!55,fill=white,#1] (#2 - 0.5, 1.2 * #4 - 0.5)
+    rectangle (#3 - 0.5, 1.2 * #4 + 0.5);
+  \node[font=\small] at ({(#2 + #3) / 2 - 0.5}, 1.2 * #4) {#5};}
 
 \NewDocumentCommand{\topic}{m !o}{%
   \subsection[#1]{#1\IfValueT{#2}{\hfill\textnormal{\textcolor{muted}{\(\bigO{#2}\)}}}}}
@@ -258,16 +255,3 @@
 \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 
-% Writing kit
-%   \topic{Dijkstra}[m \log n]      subsection with its complexity flushed right
-%   \begin{cpp} ... \end{cpp}       C++ snippet with numbered lines
-%   \cppfile{../notebook/code/x.cpp}  the notebook's own snippet, paths relative to main.tex
-%   \plainfile{../notebook/code/x/build.txt}  same box for shell commands
-%   \excerpt[f,g]{file}{first}{last}  lines first..last, f and g colored
-%   \begin{tikzpicture}[tree] ...   a small drawn tree
-%   \code|vector<int>|              inline C++
-%   theorem, lemma, corollary       blue boxes, \begin{theorem}[Fermat]
-%   definition, example, remark     teal, amber and muted
-%   \begin{notes}[Reading the ...]  grey box with a heading line, built for itemize
-%   \begin{pitfall} ... \end{pitfall}  red box for bugs that cost you a submission
-%   \bigO{n}, \floor{x}, \ceil{x}, \abs{x}, \lcm, \term{word}
