@@ -8,6 +8,19 @@
 \plainfile[title=b.sh,usage={bash b.sh A \&\& ./A < in}]{code/contest/b.sh}
 
 \topic{Stress test}
-\plainfile[title=stress.bat,usage={stress A}]{code/contest/stress.bat}
-\plainfile[title=stress.sh,usage={bash stress.sh A}]{code/contest/stress.sh}
+\plainfile[title=stress.bat,usage={stress A [check]}]{code/contest/stress.bat}
+\plainfile[title=stress.sh,usage={bash stress.sh A [check]}]{code/contest/stress.sh}
 \cppfile[title=Random Number Generator,usage={cout {<}{<} rng(L, R)},funcs={rng}]{code/contest/gen.cpp}
+\cppfile[title=check.cpp,usage={main of a template copy},funcs={main}]{code/contest/check.cpp}
+
+\topic{Python}
+\plainfile[title=template.py,usage={big integers, quick math}]{code/misc/template.py}
+
+\topic{Troubleshooting}
+{\small
+\textbf{Before submitting.} Max-size test for time and memory, overflow, the right file, debug output removed.
+\textbf{Wrong answer.} Reread the statement. Clear globals between test cases. Edge cases: $n = 0, 1$, all equal, sorted, negative. Overflow in intermediate products, \code|1 << k| on \code|ll|, negative \code|%|, rounding of negatives. Precision: compare with eps, avoid \code|==| on doubles. Off-by-one in loops and binary search. Multiple answers allowed? Uninitialized variables. Shadowed names, \code|i| for \code|j|.
+\textbf{Runtime error.} Out of bounds (try \code|-D_GLIBCXX_DEBUG|), recursion too deep (iterate, or the stack flag on Windows), division by zero, iterator invalidated by \code|push_back| or \code|erase|, \code|pop| on empty.
+\textbf{Time limit.} Infinite loop, complexity at max $n$, copying vectors by value, \code|endl|, \code|map| where an array works, hacked \code|unordered_map| (use SplitMix), too many \code|new|.
+\textbf{Memory.} \code|4n| segment trees, \code|vector<vector>| overhead, recursion.
+\par}

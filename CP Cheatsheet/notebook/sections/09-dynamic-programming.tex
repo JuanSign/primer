@@ -1,1 +1,36 @@
 \section{Dynamic Programming}
+
+\topic{Divide and Conquer Optimization}[kn \log n]
+\cppfile[title=solve,usage={cur[i] = min prv[k] + cost(k, i), k < i},
+  funcs={solve}]{code/dp/dnc.cpp}
+
+\topic{Knuth Optimization}[n^2]
+\cppfile[title=knuth,usage={dp[i][j] = min dp[i][k] + dp[k][j] + C},
+  funcs={knuth}]{code/dp/knuth.cpp}
+
+\topic{Sum over Subsets}[B \cdot 2^B]
+\cppfile[title=sosSub / sosSup,usage={f[m] = sum over subsets},
+  funcs={sosSub,sosSup}]{code/dp/sos.cpp}
+
+\topic{Longest Increasing Subsequence}[n \log n]
+\cppfile[title=lis,usage={strict, returns indices},
+  funcs={lis}]{code/dp/lis.cpp}
+
+\topic{Steiner Tree}[3^k n + 2^k m \log n]
+\cppfile[title=steiner,usage={min tree joining terminals t},
+  funcs={steiner}]{code/dp/steiner.cpp}
+
+\topic{Digit DP}[\text{digits} \cdot \text{states} \cdot 10]
+\cppfile[title=count,usage={x in [0, N] with digit sum \% K == 0},
+  funcs={go,count}]{code/dp/digit-dp.cpp}
+
+{\small Add a \code|started| flag when leading zeros matter. A range $[L, R]$ is \code|count(R) - count(L - 1)|.\par}
+
+\topic{Techniques}
+{\small
+\textbf{D\&C opt} needs $opt(i) \le opt(i + 1)$. \textbf{Knuth} needs $C$ monotone and $C(a, c) + C(b, d) \le C(a, d) + C(b, c)$ for $a \le b \le c \le d$.
+\textbf{Convex hull trick.} $dp_i = \min_j (m_j x_i + b_j)$: \code|LineContainer| with negated lines.
+\textbf{Aliens (WQS).} If the best value $f(k)$ with exactly $k$ items is convex, charge $\lambda$ per item, solve without the limit, binary search $\lambda$ until the chosen count is $k$, answer $g(\lambda) + \lambda k$. Break ties toward the larger count.
+\textbf{Slope trick.} Keep a convex piecewise linear function as two heaps of breakpoints, add $|x - a|$ or prefix minima in $O(\log n)$.
+\textbf{Bitset knapsack.} $b \mathrel{|}= b \ll w$ for each item, $O(nW/64)$.
+\par}

@@ -6,7 +6,6 @@ struct SegTree {
   T merge(T a, T b) { return a + b; }
   T apply(T x, L f, int len) { return x + f * len; }
   L comp(L f, L g) { return f + g; } // f applied after g
-
   int n;
   vector<T> t;
   vector<L> lz;
@@ -27,7 +26,6 @@ struct SegTree {
     put(2 * v, m - lo, lz[v]), put(2 * v + 1, hi - m, lz[v]);
     lz[v] = id;
   }
-
   void update(int l, int r, L f) { update(l, r, f, 1, 0, n); }
   void update(int l, int r, L f, int v, int lo, int hi) {
     if (r <= lo || hi <= l) return;
@@ -38,7 +36,6 @@ struct SegTree {
     update(l, r, f, 2 * v + 1, m, hi);
     t[v] = merge(t[2 * v], t[2 * v + 1]);
   }
-
   T query(int l, int r) { return query(l, r, 1, 0, n); }
   T query(int l, int r, int v, int lo, int hi) {
     if (r <= lo || hi <= l) return e;
@@ -48,7 +45,6 @@ struct SegTree {
     return merge(query(l, r, 2 * v, lo, m),
                  query(l, r, 2 * v + 1, m, hi));
   }
-
   void set(int i, T x) { set(i, x, 1, 0, n); }
   void set(int i, T x, int v, int lo, int hi) {
     if (hi - lo == 1) { t[v] = x; return; }
@@ -57,24 +53,5 @@ struct SegTree {
     if (i < m) set(i, x, 2 * v, lo, m);
     else set(i, x, 2 * v + 1, m, hi);
     t[v] = merge(t[2 * v], t[2 * v + 1]);
-  }
-
-  // smallest i >= l with f(query(l, i + 1)), else n
-  template<class F> int first(int l, F f) {
-    T acc = e;
-    return first(l, f, acc, 1, 0, n);
-  }
-  template<class F>
-  int first(int l, F& f, T& acc, int v, int lo, int hi) {
-    if (hi <= l) return n;
-    if (l <= lo) {
-      T s = merge(acc, t[v]);
-      if (!f(s)) { acc = s; return n; }
-      if (hi - lo == 1) return lo;
-    }
-    int m = (lo + hi) / 2;
-    push(v, lo, m, hi);
-    int i = first(l, f, acc, 2 * v, lo, m);
-    return i < n ? i : first(l, f, acc, 2 * v + 1, m, hi);
   }
 };

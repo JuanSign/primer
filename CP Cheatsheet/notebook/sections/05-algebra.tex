@@ -1,0 +1,58 @@
+\section{Algebra \& Numerics}
+
+\topic{NTT}[n \log n]
+\cppfile[title=ntt / conv,usage={mod 998244353, needs modpow},
+  funcs={ntt,conv}]{code/alg/ntt.cpp}
+
+\topic{FFT, Arbitrary Mod Convolution}[n \log n]
+\cppfile[title=fft / conv / convMod,usage={convMod<M>: any M < 2\textasciicircum{}31},
+  funcs={fft,conv,convMod}]{code/alg/fft.cpp}
+
+\topic{Polynomial Inverse, Log, Exp}[n \log n]
+\cppfile[title=inv / log / exp,usage={first n terms, needs NTT},
+  funcs={inv,deriv,integ,log,exp}]{code/alg/poly.cpp}
+
+\topic{Berlekamp-Massey}[n^2 + n^2 \log k]
+\cppfile[title=berlekampMassey / linearRec,usage={give 2d terms, k-th term},
+  funcs={berlekampMassey,linearRec}]{code/alg/berlekamp-massey.cpp}
+
+\topic{Matrix Power}[n^3 \log e]
+\cppfile[title=Mat,usage={mod MOD},
+  funcs={mul,mpow}]{code/alg/matrix.cpp}
+
+\topic{Gaussian Elimination}[n^3]
+\cppfile[title=solveLinear,usage={rank, -1 if none, x by ref},
+  funcs={solveLinear}]{code/alg/gauss.cpp}
+\cppfile[title=rref / det,usage={rref mod MOD, det any mod},
+  funcs={rref,det}]{code/alg/gauss-mod.cpp}
+
+{\small\textbf{Using rref.} System: rows $[A \mid b]$, \code|rref(a, m)|, inconsistent if a row $\ge r$ has $b \ne 0$, else the pivot of each row gets its $b$. Inverse: rows $[A \mid I]$, \code|rref(a, n) == n| leaves $A^{-1}$ on the right.\par}
+
+\topic{XOR Basis, Linear Systems mod 2}[n \cdot B]
+\cppfile[title=XorBasis / gaussXor,usage={rhs in column m},
+  funcs={XorBasis,insert,maxXor,gaussXor}]{code/alg/xor.cpp}
+
+\topic{Walsh-Hadamard}[n \log n]
+\cppfile[title=fwht / conv,usage={t: 0 AND, 1 OR, 2 XOR},
+  funcs={fwht,conv}]{code/alg/fwht.cpp}
+
+\topic{Simplex}[\text{exp}]
+\cppfile[title=LPSolver,usage={max cx, Ax <= b, x >= 0},
+  funcs={LPSolver,pivot,simplex,solve}]{code/alg/simplex.cpp}
+
+\topic{Lagrange Interpolation}[n \log p]
+\cppfile[title=lagrange,usage={y[i] = f(i), returns f(x)},
+  funcs={lagrange}]{code/alg/lagrange.cpp}
+
+\topic{Integration, Ternary Search}
+\cppfile[title=simpson / ternary,usage={n even, f unimodal},
+  funcs={simpson,ternary}]{code/alg/numeric.cpp}
+
+\topic{Math Formulas}
+{\small
+\textbf{Sums.} $\sum i = \frac{n(n+1)}{2}$, $\sum i^2 = \frac{n(n+1)(2n+1)}{6}$, $\sum i^3 = \frac{n^2(n+1)^2}{4}$, $\sum_{i=0}^{n} x^i = \frac{x^{n+1} - 1}{x - 1}$, $\sum_{i \ge 1} i x^{i} = \frac{x}{(1-x)^2}$ for $|x| < 1$. $H_n \approx \ln n + 0.5772$.
+\textbf{Trig.} $\sin(a \pm b) = \sin a\cos b \pm \cos a\sin b$, $\cos(a \pm b) = \cos a\cos b \mp \sin a\sin b$, $\tan(a + b) = \frac{\tan a + \tan b}{1 - \tan a\tan b}$, $\sin a + \sin b = 2\sin\frac{a+b}{2}\cos\frac{a-b}{2}$, $\cos a + \cos b = 2\cos\frac{a+b}{2}\cos\frac{a-b}{2}$.
+\textbf{Quadratic.} $q = -\frac12(b + \mathrm{sgn}(b)\sqrt{b^2 - 4ac})$, roots $q/a$ and $c/q$ (no cancellation).
+\textbf{Calculus.} $(\arctan x)' = \frac{1}{1+x^2}$, $(\arcsin x)' = \frac{1}{\sqrt{1-x^2}}$, $\int \ln x = x\ln x - x$, $\int x e^{ax} = \frac{e^{ax}}{a^2}(ax - 1)$, $\int_0^\infty e^{-x^2} = \frac{\sqrt\pi}{2}$.
+\textbf{Probability.} $E[X + Y] = E[X] + E[Y]$, $\mathrm{Var}(X) = E[X^2] - E[X]^2$, $\mathrm{Var}(aX + b) = a^2\mathrm{Var}(X)$. Binomial$(n, p)$: $np$, $np(1-p)$. Geometric (trials to first success): $1/p$, $(1-p)/p^2$. Poisson$(\lambda)$: $\lambda$, $\lambda$. Uniform$[a, b]$: $\frac{a+b}{2}$, $\frac{(b-a)^2}{12}$. Exponential$(\lambda)$: $1/\lambda$, $1/\lambda^2$. Coupon collector: $nH_n$. Markov chain: absorption probabilities and expected steps solve a linear system.
+\par}

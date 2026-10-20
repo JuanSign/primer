@@ -1,17 +1,110 @@
 \section{Graphs}
 
+\topic{LCA}[\log n]
+\cppfile[title=LCA,usage={k-th ancestor: jump(v, k)},
+  funcs={LCA,dfs,anc,lca,jump,dist}]{code/graph/lca.cpp}
+
+\topic{Heavy-Light Decomposition}[\log^2 n]
+\cppfile[title=HLD,usage={f(l, r) on pos ranges, e = 1: edges},
+  funcs={HLD,dfs,build,path,lca,subtree}]{code/graph/hld.cpp}
+
+\topic{Centroid Decomposition}[n \log n]
+\cppfile[title=Centroid,usage={par = centroid tree},
+  funcs={Centroid,size,build}]{code/graph/centroid.cpp}
+
+\topic{Virtual Tree}[k \log n]
+\cppfile[title=virtualTree,usage={\{parent, v\}, root has -1},
+  funcs={virtualTree}]{code/graph/virtual-tree.cpp}
+
+\topic{Tree Isomorphism}[n \log n]
+\cppfile[title=treeHash,usage={same id iff isomorphic as rooted},
+  funcs={treeHash}]{code/graph/tree-hash.cpp}
+
 \topic{Strongly Connected Components}[n + m]
-\cppfile[title=SCC,usage={SCC s(g); s.comp[v], s.k},
+\cppfile[title=SCC,usage={comp ids in reverse topo order},
   funcs={SCC,dfs}]{code/graph/scc.cpp}
 
 \topic{2-SAT}[n + m]
-\cppfile[title=TwoSat,usage={needs SCC},
+\cppfile[title=TwoSat,usage={x = 2i, not x = 2i+1, needs SCC},
   funcs={TwoSat,either,imply,solve}]{code/graph/two-sat.cpp}
 
 \topic{Bridges, Cut Vertices, Blocks}[n + m]
-\cppfile[title=Biconnected,usage={addEdge all, then run()},
+\cppfile[title=Biconnected,usage={blocks = vertex BCCs},
   funcs={Biconnected,addEdge,run,dfs,twoEdge}]{code/graph/biconnected.cpp}
 
 \topic{Euler Path}[n + m]
-\cppfile[title=euler,usage={directed or undirected},
+\cppfile[title=euler,usage={g[v] = \{to, id\}, \{\} if none},
   funcs={euler}]{code/graph/euler.cpp}
+
+\topic{Dijkstra, Floyd-Warshall, Toposort}[m \log n]
+\cppfile[title=dijkstra / floyd / topoSort,usage={floyd: inf = LLONG\_MAX/4},
+  funcs={dijkstra,floyd,topoSort}]{code/graph/shortest.cpp}
+
+\topic{Bellman-Ford}[nm]
+\cppfile[title=bellmanFord,usage={\{a, b, w\}, -INF on neg cycle},
+  funcs={bellmanFord}]{code/graph/bellman-ford.cpp}
+
+\topic{Dominator Tree}[m \log n]
+\cppfile[title=dominators,usage={idom, root to itself, -1 unreachable},
+  funcs={dominators}]{code/graph/dominator.cpp}
+
+\topic{Directed MST}[m \log m]
+\cppfile[title=dmst,usage={\{cost, parent\}, -1 if none, needs RollbackDSU},
+  funcs={merge,pop,dmst}]{code/graph/directed-mst.cpp}
+
+\topic{Offline Dynamic Connectivity}[q \log q \log n]
+\cppfile[title=DynCon,usage={toggle(i, a, b) at time i, f(i) sees before i},
+  funcs={DynCon,ins,toggle,run}]{code/graph/dynamic-connectivity.cpp}
+
+\topic{Maximal Cliques}[3^{n/3}]
+\cppfile[title=cliques,usage={f(R) on every maximal clique},
+  funcs={cliques}]{code/graph/cliques.cpp}
+
+\topic{Dinic}[V^2 E]
+\cppfile[title=Dinic,usage={calc(s, t) = max flow},
+  funcs={Dinic,addEdge,dfs,calc,leftOfMinCut}]{code/graph/dinic.cpp}
+
+\topic{Min Cost Max Flow}[F E \log V]
+\cppfile[title=MCMF,usage={\{flow, cost\}, no neg cycles},
+  funcs={MCMF,addEdge,path,calc}]{code/graph/mcmf.cpp}
+
+\topic{Gomory-Hu Tree}[V \cdot \mathrm{flow}]
+\cppfile[title=gomoryHu,usage={min cut(a, b) = min on tree path},
+  funcs={gomoryHu}]{code/graph/gomory-hu.cpp}
+
+\topic{Global Min Cut}[V^3]
+\cppfile[title=globalMinCut,usage={\{cut, one side\}},
+  funcs={globalMinCut}]{code/graph/min-cut.cpp}
+
+\topic{Hopcroft-Karp}[E\sqrt{V}]
+\cppfile[title=HopcroftKarp,usage={l[a] = match of left a},
+  funcs={HopcroftKarp,addEdge,bfs,dfs,run}]{code/graph/hopcroft-karp.cpp}
+
+\topic{Hungarian}[n^2 m]
+\cppfile[title=hungarian,usage={n <= m, \{min cost, match\}},
+  funcs={hungarian}]{code/graph/hungarian.cpp}
+
+\topic{General Matching}[V^3]
+\cppfile[title=Blossom,usage={mt[v] = partner or -1},
+  funcs={Blossom,addEdge,lca,mark,find,run}]{code/graph/blossom.cpp}
+
+\topic{Flow and Matching Facts}
+{\small
+\textbf{K\"onig.} Bipartite: max matching = min vertex cover, max independent set = $V -$ matching. Cover: walk alternating paths from free left vertices, take unvisited left and visited right.
+\textbf{DAG path cover} = $n -$ matching on $v_{\text{out}} \to u_{\text{in}}$. With reachability edges it is the min chain cover = max antichain (Dilworth).
+\textbf{Lower bounds} $[lo, hi]$ on $a \to b$: cap $hi - lo$, $ex_b \mathrel{+}= lo$, $ex_a \mathrel{-}= lo$. Add $S' \to v$ (cap $ex_v > 0$), $v \to T'$ ($-ex_v$) and $t \to s$ ($\infty$). Feasible iff the $S'T'$ flow saturates. Then remove $t \to s$ and push $s \to t$ for max flow.
+\textbf{Closure.} Profit $p_i$: $s \to i$ cap $p_i$ if $p_i > 0$, else $i \to t$ cap $-p_i$. ``$i$ needs $j$'': $i \to j$ cap $\infty$. Best $= \sum p_i^+ -$ min cut.
+\textbf{Disjoint paths.} Edge: unit caps. Vertex: split $v$ into $v_{in} \to v_{out}$ cap 1.
+\textbf{Hall.} Left side saturable iff $|N(S)| \ge |S|$ for all $S$.
+\par}
+
+\topic{Tree and Graph Techniques}
+{\small
+\textbf{Euler tour.} Subtree of $v$ = positions $[tin_v, tout_v)$, so subtree queries become range queries. Path queries: $+x$ at $tin$, $-x$ at $tout$, then root-to-$v$ sums.
+\textbf{Small to large.} Merge the smaller set into the larger one (keep the heavy child's set), $O(n \log n)$ moves.
+\textbf{Rerooting.} Compute $down_v$ from children, then $up_u$ from $up_v$ and siblings with prefix and suffix merges, so every vertex gets the answer as root.
+\textbf{Functional graph.} Binary lifting \code|up[j][v]| gives the $k$-th successor; every component is one cycle with trees hanging on it.
+\textbf{Degree sequences.} Erd\H{o}s--Gallai: $d_1 \ge \dots \ge d_n$ with even sum is graphic iff $\sum_{i \le k} d_i \le k(k-1) + \sum_{i > k}\min(d_i, k)$ for all $k$.
+\textbf{MST.} Kruskal with a DSU. The minimum bottleneck path lies on the MST. Second best MST: add one edge, drop the max on its cycle (binary lifting).
+\textbf{Bipartite.} Iff no odd cycle. Max weight closure, vertex cover and path cover: see the flow facts.
+\par}

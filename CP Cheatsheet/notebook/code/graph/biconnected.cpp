@@ -1,8 +1,5 @@
-// undirected, multi-edges ok. blocks = vertex biconnected
-// components, an isolated vertex is one on its own.
-// block-cut tree: join v and n + i for every v in blocks[i]
 struct Biconnected {
-  vector<vector<pii>> g; // {neighbor, edge id}
+  vector<vector<pii>> g;
   vi num, low, cut, bridge, st;
   vector<vi> blocks;
   int t = 0;
@@ -40,7 +37,7 @@ struct Biconnected {
       blocks.push_back(b);
     }
   }
-  vi twoEdge() { // 2-edge-connected component of each vertex
+  vi twoEdge() {
     vi c(sz(g), -1);
     int k = 0;
     rep(s, 0, sz(g)) if (c[s] < 0) {

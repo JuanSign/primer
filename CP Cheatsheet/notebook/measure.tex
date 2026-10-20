@@ -1,0 +1,19 @@
+\documentclass[9pt,a4paper,oneside]{extarticle}
+\input{preamble}
+\input{blocks}
+\newwrite\nbh
+\newcommand{\nbmeasure}[1]{%
+  \setbox0=\vbox{\hsize=\nbcolw\linewidth=\hsize
+    \parindent=0pt\parskip=0pt\useblock{#1}}%
+  \edef\nbA{\the\dimexpr\ht0+\dp0\relax}%
+  \setbox0=\vbox{\hsize=\textwidth\linewidth=\hsize
+    \parindent=0pt\parskip=0pt\useblock{#1}}%
+  \edef\nbB{\the\dimexpr\ht0+\dp0\relax}%
+  \immediate\write\nbh{#1 \nbA\space\nbB}}
+\begin{document}
+\immediate\openout\nbh=heights.txt
+\immediate\write\nbh{TEXTHEIGHT \the\textheight\space\the\textheight}
+\forallblocks{\nbmeasure}
+\immediate\closeout\nbh
+measured
+\end{document}

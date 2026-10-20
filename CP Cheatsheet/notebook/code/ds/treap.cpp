@@ -53,7 +53,6 @@ struct Treap {
     push(b), t[b].l = join(a, t[b].l), pull(b);
     return b;
   }
-
   void insert(int i, T v) { // v becomes position i
     auto [a, b] = split(root, i);
     root = join(join(a, make(v)), b);

@@ -1,1 +1,36 @@
 \section{Miscellaneous}
+
+\topic{Mo's Algorithm}[n\sqrt{q}]
+\cppfile[title=mo,usage={[l, r), blk about n / sqrt(q)},
+  funcs={mo,add,del,calc}]{code/misc/mo.cpp}
+
+\topic{Fast Input}
+\cppfile[title=readInt,usage={reads signed integers},
+  funcs={gc,readInt}]{code/misc/fast-io.cpp}
+
+\topic{Tricks}
+\cppfile[title=tricks,usage={pragmas go above includes},
+  funcs={str}]{code/misc/tricks.cpp}
+
+\topic{Interval Container}[\log n]
+\cppfile[title=addInterval / removeInterval,usage={disjoint [l, r) in set<pii>},
+  funcs={addInterval,removeInterval}]{code/misc/interval-container.cpp}
+
+\topic{Misc Facts}
+{\small
+\textbf{XOR hashing.} Give each value a random 64-bit key, a multiset hash is the XOR (parity) or sum (counts) of keys, compare range hashes with prefix sums.
+\textbf{Josephus} ($k = 2$): survivor $2(n - 2^{\lfloor \log_2 n \rfloor}) + 1$ (1-indexed). General: $J(n, k) = (J(n-1, k) + k) \bmod n$, $J(1) = 0$.
+\textbf{Gray code} $g = i \oplus (i \gg 1)$, inverse by prefix XOR of bits.
+\textbf{Stack.} Linux: \code|ulimit -s unlimited|. Windows: \code|-Wl,--stack=268435456|.
+\textbf{Binary search on reals}: 100 iterations, or iterate on the bits of a double.
+\textbf{Compression.} \code|sort|, \code|unique|, \code|lower_bound|.
+\par}
+
+\topic{Offline Techniques}
+{\small
+\textbf{CDQ divide and conquer.} Split the time range in half, recurse on both, and add the effect of left updates on right queries by sweeping one coordinate with a Fenwick tree. 3D dominance in $O(n \log^2 n)$.
+\textbf{Parallel binary search.} Every query keeps $[lo, hi)$. Each round sorts the queries by mid, replays the updates in order once, and checks each query at its mid. $O(\log V)$ rounds.
+\textbf{Meet in the middle.} Enumerate both halves ($2^{n/2}$ each), sort one, then binary search or two pointers.
+\textbf{Sqrt decomposition.} Blocks of size $\sqrt n$ with an aggregate and a lazy tag per block, or rebuild everything every $\sqrt q$ queries.
+\textbf{Sweep line.} Sort events by $x$ (order ties as needed: open, query, close), keep the active set in a \code|set| or Fenwick tree.
+\par}

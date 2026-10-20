@@ -1,7 +1,3 @@
-// g[v] = {to, edge id}, m edges. Undirected: add both ways
-// with one id. Returns the vertices of a path from s that uses
-// every edge once, or {} if there is none. Start s at an odd
-// vertex (undirected) or one with out = in + 1 (directed).
 vi euler(const vector<vector<pii>>& g, int m, int s) {
   vi bal(sz(g)), it(sz(g)), used(m), path, st{s};
   bal[s]++;

@@ -1,5 +1,3 @@
-// comp[v] = SCC of v, k = number of SCCs. Each edge a -> b has
-// comp[a] >= comp[b], so ids are a reverse topological order.
 struct SCC {
   const vector<vi>& g;
   vi num, low, comp, st;

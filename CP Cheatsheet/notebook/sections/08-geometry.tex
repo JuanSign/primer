@@ -1,1 +1,49 @@
 \section{Geometry}
+
+\topic{Point}
+\cppfile[title=Point,usage={T = ll when exact},
+  funcs={sgn,Point,dot,cross,dist2,dist,angle,unit,perp,normal,rotate}]{code/geo/point.cpp}
+
+\topic{Lines and Segments}
+\cppfile[title=lines,usage={lineInter: \{1, p\}, 0 par, -1 same},
+  funcs={sideOf,onSegment,lineDist,segDist,lineInter,segInter,project,reflect}]{code/geo/lines.cpp}
+
+\topic{Polygons}[n]
+\cppfile[title=polygon,usage={cut keeps the right of s->e},
+  funcs={polygonArea2,inPolygon,polygonCenter,polygonCut}]{code/geo/polygon.cpp}
+
+\topic{Convex Hull}[n \log n]
+\cppfile[title=convexHull / hullDiameter / inHull,usage={CCW, no collinear},
+  funcs={convexHull,hullDiameter,inHull}]{code/geo/hull.cpp}
+
+\topic{Closest Pair}[n \log n]
+\cppfile[title=closest,usage={n >= 2},
+  funcs={closest}]{code/geo/closest.cpp}
+
+\topic{Circles}
+\cppfile[title=circles,usage={r2 < 0: inner tangents},
+  funcs={circleLine,circleInter,tangents,ccCenter,mec,circlePoly}]{code/geo/circle.cpp}
+
+\topic{Half-Plane Intersection}[n \log n]
+\cppfile[title=hpi,usage={keeps left of s->e, add a box},
+  funcs={HP,out,inter,hpi}]{code/geo/half-plane.cpp}
+
+\topic{Angle Sort, Minkowski Sum}[n \log n]
+\cppfile[title=angleLess / minkowski,usage={convex CCW inputs},
+  funcs={half,angleLess,minkowski}]{code/geo/angle-minkowski.cpp}
+
+\topic{Polygon Union}[n^2 \log n]
+\cppfile[title=polyUnion,usage={CCW polygons},
+  funcs={rat,polyUnion}]{code/geo/polygon-union.cpp}
+
+\topic{3D Point, 3D Hull}[n^2]
+\cppfile[title=Point3D / hull3d,usage={no 4 coplanar, faces outward},
+  funcs={Point3D,dot,cross,dist2,dist,unit,hull3d,volume}]{code/geo/point3d.cpp}
+
+\topic{Formulas}
+{\small
+\textbf{Triangle.} Area $= \frac12 ab\sin C = \sqrt{s(s-a)(s-b)(s-c)}$, $r = A/s$, $R = \frac{abc}{4A}$, $\frac{a}{\sin A} = 2R$, $c^2 = a^2 + b^2 - 2ab\cos C$. Median $m_a = \frac12\sqrt{2b^2 + 2c^2 - a^2}$.
+\textbf{Pick.} $A = I + B/2 - 1$. \textbf{Euler.} $V - E + F = 2$ (planar, connected).
+\textbf{Sphere.} $V = \frac43\pi r^3$, $S = 4\pi r^2$. Cap of height $h$: $V = \frac{\pi h^2 (3r - h)}{3}$, $S = 2\pi r h$. Cone $V = \frac13\pi r^2 h$. Great circle: $d = r\arccos(\sin\varphi_1\sin\varphi_2 + \cos\varphi_1\cos\varphi_2\cos\Delta\lambda)$.
+\textbf{Rotation} by $\theta$: $(x\cos\theta - y\sin\theta,\ x\sin\theta + y\cos\theta)$. \textbf{Manhattan to Chebyshev}: $(x + y, x - y)$.
+\par}

@@ -1,1 +1,45 @@
 \section{Strings}
+
+\topic{Prefix Function, KMP}[n]
+\cppfile[title=pi / match,usage={match = start indices},
+  funcs={pi,match}]{code/string/kmp.cpp}
+
+\topic{Z-Function}[n]
+\cppfile[title=Z,usage={z[i] = lcp(s, s[i..]), z[0] = 0},
+  funcs={Z}]{code/string/z.cpp}
+
+\topic{Manacher}[n]
+\cppfile[title=manacher,usage={[0]: even, [1]: odd radius},
+  funcs={manacher}]{code/string/manacher.cpp}
+
+\topic{Hashing}[n]
+\cppfile[title=Hash,usage={random B in [256, M), get [l, r)},
+  funcs={mul,Hash,get}]{code/string/hash.cpp}
+
+\topic{Suffix Array}[n \log n]
+\cppfile[title=SuffixArray,usage={sa[0] = n, lcp[i] = lcp(i-1, i)},
+  funcs={SuffixArray}]{code/string/suffix-array.cpp}
+
+\topic{Aho-Corasick}[n \cdot A]
+\cppfile[title=AhoCorasick,usage={out[v] = matches ending at v},
+  funcs={AhoCorasick,add,build}]{code/string/aho-corasick.cpp}
+
+\topic{Suffix Automaton}[n \cdot A]
+\cppfile[title=SAM,usage={distinct = sum len - len[link]},
+  funcs={SAM,add}]{code/string/suffix-automaton.cpp}
+
+\topic{Palindromic Tree}[n \cdot A]
+\cppfile[title=Eertree,usage={node 0: len -1, node 1: empty},
+  funcs={Eertree,get,add}]{code/string/eertree.cpp}
+
+\topic{Lyndon Factorization, Min Rotation}[n]
+\cppfile[title=duval / minRotation,usage={starts of Lyndon words},
+  funcs={duval,minRotation}]{code/string/lyndon.cpp}
+
+{\small
+\textbf{Counting occurrences.} Aho-Corasick: add 1 to the state after each text char, then add every count to \code|link| in reverse \code|q| order. SAM: \code|cnt = 1| on non-clone states, add to \code|link| by decreasing \code|len|. Eertree: add \code|cnt| to \code|link| from the last node down.
+\par}
+
+{\small
+\textbf{Wildcard matching (FFT).} Letters $1..26$, wildcard $0$. Start $i$ matches iff $\sum_j p_j t_{i+j} (p_j - t_{i+j})^2 = 0$. Expand into three convolutions of the reversed $p^3, p^2, p$ with $t, t^2, t^3$ and read index $i + m - 1$. Use the double \code|conv|.
+\par}

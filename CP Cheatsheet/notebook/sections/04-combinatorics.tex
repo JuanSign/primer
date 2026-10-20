@@ -1,0 +1,32 @@
+\section{Combinatorics}
+
+\topic{Binomials, Lucas}[n]
+\cppfile[title=Binom / lucas,usage={needs modpow, MOD},
+  funcs={Binom,C,lucas}]{code/comb/binomial.cpp}
+
+\topic{Partition Numbers}[n\sqrt{n}]
+\cppfile[title=partitions,usage={p[0..n] mod MOD},
+  funcs={partitions}]{code/comb/partitions.cpp}
+
+\topic{Formulas}
+{\small
+\textbf{Catalan} $C_n = \binom{2n}{n}/(n+1) = \sum C_i C_{n-1-i}$: 1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862. Paths to $(n, m)$ never above $y = x$: $\binom{n+m}{n} - \binom{n+m}{n+1}$.
+\textbf{Stirling 2nd} $S(n, k) = k S(n-1, k) + S(n-1, k-1) = \frac{1}{k!}\sum_j (-1)^{k-j}\binom{k}{j} j^n$. \textbf{Stirling 1st} (unsigned, cycles) $c(n, k) = (n-1)c(n-1, k) + c(n-1, k-1)$.
+\textbf{Bell} $B_{n+1} = \sum_k \binom{n}{k} B_k$: 1, 1, 2, 5, 15, 52, 203, 877, 4140. \textbf{Derangements} $D_n = (n-1)(D_{n-1} + D_{n-2})$: 1, 0, 1, 2, 9, 44, 265.
+\textbf{Eulerian} (perms with $k$ ascents) $A(n, k) = (k+1)A(n-1, k) + (n-k)A(n-1, k-1)$. \textbf{Partitions} $p(n)$: 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42.
+\textbf{Stars and bars.} $x_1 + \dots + x_k = n$, $x_i \ge 0$: $\binom{n+k-1}{k-1}$. \textbf{Vandermonde} $\sum_i \binom{m}{i}\binom{n}{k-i} = \binom{m+n}{k}$. \textbf{Hockey stick} $\sum_{i=r}^n \binom{i}{r} = \binom{n+1}{r+1}$.
+\textbf{Burnside.} Orbits $= \frac{1}{|G|}\sum_g |\mathrm{Fix}(g)|$. Necklaces, $n$ beads, $k$ colors: $\frac{1}{n}\sum_{d \mid n}\varphi(d) k^{n/d}$.
+\textbf{Trees.} Labeled: $n^{n-2}$. Forests of $k$ trees rooted at $k$ given vertices: $k n^{n-k-1}$. With degrees $d_i$: $\frac{(n-2)!}{\prod (d_i - 1)!}$. Spanning trees: any cofactor of the Laplacian $D - A$.
+\textbf{Fibonacci.} $F_{n+m} = F_m F_{n+1} + F_{m-1} F_n$, $\gcd(F_m, F_n) = F_{\gcd(m, n)}$.
+\textbf{Inclusion-exclusion.} $|\bigcup A_i| = \sum_{\emptyset \ne S} (-1)^{|S|+1} |\bigcap_{i \in S} A_i|$. Surjections $n \to k$: $\sum_j (-1)^j \binom{k}{j}(k-j)^n$.
+\par}
+
+\topic{Game Theory}
+{\small
+\textbf{Sprague-Grundy.} $g(s) = \mathrm{mex}\{g(t) : s \to t\}$, $s$ loses iff $g(s) = 0$, a sum of independent games has $g = \bigoplus g_i$. For subtraction games compute $g$ by brute force and look for a period.
+\textbf{Nim.} First player wins iff $\bigoplus a_i \ne 0$; move pile $a_i$ to $a_i \oplus X$ when that is smaller. \textbf{Mis\`ere Nim.} If every pile is $\le 1$: first wins iff the number of piles is even. Otherwise the normal rule.
+\textbf{Bash} (take $1..k$): $g(n) = n \bmod (k+1)$. \textbf{Staircase Nim} (move coins from step $i$ to $i - 1$): Nim on the odd steps.
+\textbf{Moore's Nim$_k$} (take from up to $k$ piles): loses iff for every bit the number of piles with that bit is divisible by $k + 1$.
+\textbf{Wythoff} (take from one pile, or equally from both): losing positions $(\lfloor k\varphi \rfloor, \lfloor k\varphi \rfloor + k)$, $\varphi = \frac{1+\sqrt5}{2}$.
+\textbf{Hackenbush} on a rooted tree: $g(v) = \bigoplus_{c} (g(c) + 1)$ over the children $c$.
+\par}

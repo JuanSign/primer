@@ -1,0 +1,54 @@
+\section{Number Theory}
+
+\topic{Modular Arithmetic}[\log e]
+\cppfile[title=modpow / Mint,usage={b\textasciicircum{}e mod m, Mint mod MOD},
+  funcs={modpow,Mint,inv}]{code/nt/modular.cpp}
+
+\topic{Extended Euclid, CRT}[\log n]
+\cppfile[title=euclid / crt,usage={crt: \{x, lcm\}, \{-1, -1\} if none},
+  funcs={euclid,modinv,crt}]{code/nt/euclid.cpp}
+
+\topic{Linear Sieve}[N]
+\cppfile[title=sieve,usage={lp = smallest prime factor},
+  funcs={sieve}]{code/nt/sieve.cpp}
+
+\topic{Miller-Rabin, Pollard Rho}[n^{1/4}]
+\cppfile[title=isPrime / factor,usage={any n < 2\textasciicircum{}64},
+  funcs={mulmod,powmod,isPrime,pollard,factor}]{code/nt/pollard.cpp}
+
+\topic{Discrete Log}[\sqrt{m}]
+\cppfile[title=modLog,usage={min x > 0, a\textasciicircum{}x = b mod m, or -1},
+  funcs={modLog}]{code/nt/discrete-log.cpp}
+
+\topic{Primitive Root}[\sqrt{p}]
+\cppfile[title=primitiveRoot,usage={p prime, needs modpow},
+  funcs={primitiveRoot}]{code/nt/primitive-root.cpp}
+
+\topic{Modular Square Root}[\log^2 p]
+\cppfile[title=modSqrt,usage={x\textasciicircum{}2 = a mod p, or -1},
+  funcs={modSqrt}]{code/nt/mod-sqrt.cpp}
+
+\topic{Floor Sum}[\log m]
+\cppfile[title=floorSum,usage={sum floor((ai + b) / m), i < n},
+  funcs={floorSum}]{code/nt/floor-sum.cpp}
+
+\topic{Prime Counting}[n^{3/4}]
+\cppfile[title=primeCount,usage={pi(1e11) in about 1 s},
+  funcs={primeCount}]{code/nt/prime-count.cpp}
+
+\topic{Du's Sieve}[n^{2/3}]
+\cppfile[title=phiSum,usage={pre = prefix phi up to n\textasciicircum{}(2/3)},
+  funcs={phiSum}]{code/nt/du-sieve.cpp}
+
+{\small Uses $\sum_{d \le n} \Phi(\lfloor n/d \rfloor) = n(n+1)/2$. For Mertens $M(n) = \sum \mu$: start from 1 instead of $n(n+1)/2$. In general, if $f * g = h$ with easy prefix sums of $g$ and $h$, then $g(1)F(n) = H(n) - \sum_{d \ge 2} g(d)F(\lfloor n/d \rfloor)$.\par}
+
+\topic{Number Theory Facts}
+{\small
+\textbf{Euler.} $a^{\varphi(m)} \equiv 1$ if $\gcd(a, m) = 1$. For any $a$ and $e \ge \log_2 m$: $a^e \equiv a^{(e \bmod \varphi(m)) + \varphi(m)}$. \textbf{Wilson.} $(p-1)! \equiv -1 \pmod p$.
+\textbf{M\"obius.} $g(n) = \sum_{d \mid n} f(d) \iff f(n) = \sum_{d \mid n} \mu(d) g(n/d)$. $\sum_{d \mid n} \mu(d) = [n = 1]$, $\sum_{d \mid n} \varphi(d) = n$, $\sum_{i \le n} \gcd(i, n) = \sum_{d \mid n} d\,\varphi(n/d)$. $\#\{(a, b) \le n : \gcd = 1\} = \sum_d \mu(d) \lfloor n/d \rfloor^2$.
+\textbf{Diophantine.} $ax + by = c$ solvable iff $g = \gcd(a, b) \mid c$: $x = x_0 c/g + k b/g$, $y = y_0 c/g - k a/g$. Largest non-representable with $\gcd(a, b) = 1$: $ab - a - b$.
+\textbf{Legendre.} $v_p(n!) = \sum_i \lfloor n/p^i \rfloor$. \textbf{Kummer.} $v_p\binom{n}{k}$ = carries when adding $k$ and $n - k$ in base $p$.
+\textbf{Primitive roots} exist mod $1, 2, 4, p^k, 2p^k$. \textbf{Pythagorean triples}: $k(m^2 - n^2), 2kmn, k(m^2 + n^2)$, $m > n$ coprime, not both odd.
+\textbf{Divisors.} Max count: 1344 for $n \le 10^9$, 103680 for $n \le 10^{18}$.
+\textbf{NTT primes.} $998244353 = 119 \cdot 2^{23} + 1$, $167772161 = 5 \cdot 2^{25} + 1$, $469762049 = 7 \cdot 2^{26} + 1$, all with root 3. Other primes: $10^9 + 7$, $10^9 + 9$, $10^{18} + 3$.
+\par}

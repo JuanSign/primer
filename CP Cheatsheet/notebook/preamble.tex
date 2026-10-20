@@ -20,8 +20,6 @@
 \usepackage[hypertexnames=false]{hyperref}
 \usepackage{thmtools}
 
-% Code copied out of the PDF comes back as plain ASCII (INC allows pasting
-% from the notebook).
 \input{glyphtounicode}
 \pdfgentounicode=1
 
@@ -99,14 +97,8 @@
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
-\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
-\renewcommand{\subsectionmark}[1]{}
-\fancyhead[L]{\small\color{muted}\nouppercase{%
-  \IfMarksEqualTF{2e-left}{first}{last}
-    {\FirstMark{2e-left}}
-    {\FirstMark{2e-left}\,--\,\LastMark{2e-left}}}}
+\fancyhead[L]{\small\color{muted}\teamname\ ICPC Notebook}
 \fancyhead[R]{\small\color{muted}\thepage}
-% Page one. The rules ask for team and university at its top right.
 \fancypagestyle{first}{%
   \fancyhf{}%
   \fancyhead[L]{\small\color{muted}ICPC Notebook}%
@@ -165,7 +157,7 @@
   before upper={\textbf{\textcolor{warncolor}{#1.}}\ }
 }
 
-\newcommand{\codesize}{\fontsize{7.5}{8.6}\selectfont}
+\newcommand{\codesize}{\fontsize{8}{9.3}\selectfont}
 \lstdefinestyle{cp}{
   language=C++,
   basicstyle=\ttfamily\codesize,
@@ -188,46 +180,92 @@
   belowskip=0pt
 }
 \lstdefinestyle{cpinline}{style=cp,basicstyle=\ttfamily}
-% Code boxes. title={gen.cpp} names the box, usage={gen 25 > in} adds the
-% command to type, flushed right in the title bar (escape & as \&).
-\tcbset{
-  codebox/.style={
-    primerbox,
-    unbreakable,
-    colback=ink!3,
-    colframe=ink!35,
-    colbacktitle=ink!10,
-    coltitle=ink,
-    fonttitle=\ttfamily\codesize\bfseries,
-    toptitle=1.5pt,
-    bottomtitle=1.5pt,
-    listing only
-  },
-  usage/.style={after title={\hfill\mdseries\textcolor{muted}{#1}}},
-  funcs/.style={listing options={style=cp,emph={#1}}}
-}
-\DeclareTCBListing{cpp}{!O{}}{
-  codebox,
-  listing options={style=cp},
-  #1
-}
-\newtcbinputlisting{\cppfile}[2][]{
-  codebox,
-  listing file={#2},
-  listing options={style=cp},
-  #1
-}
 \lstdefinestyle{plain}{style=cp,language={}}
-\newtcbinputlisting{\plainfile}[2][]{
-  codebox,
-  listing file={#2},
-  listing options={style=plain},
-  #1
-}
 \newcommand{\code}{\lstinline[style=cpinline]}
 
-\NewDocumentCommand{\topic}{m !o}{%
-  \subsection[#1]{#1\IfValueT{#2}{\hfill\textnormal{\textcolor{muted}{\(\bigO{#2}\)}}}}}
+\definecolor{mc-contest}{HTML}{64748B}
+\definecolor{mc-ds}{HTML}{2563EB}
+\definecolor{mc-nt}{HTML}{EA580C}
+\definecolor{mc-comb}{HTML}{CA8A04}
+\definecolor{mc-alg}{HTML}{9333EA}
+\definecolor{mc-graph}{HTML}{16A34A}
+\definecolor{mc-string}{HTML}{DB2777}
+\definecolor{mc-geo}{HTML}{0891B2}
+\definecolor{mc-dp}{HTML}{DC2626}
+\definecolor{mc-misc}{HTML}{92400E}
+
+\makeatletter
+\newcommand{\nb@ids}{}
+\newcommand{\nb@reg}[2]{%
+  \expandafter\gdef\csname nb@blk@#1\endcsname{#2}%
+  \g@addto@macro\nb@ids{\do{#1}}}
+\NewDocumentCommand{\defcode}{m m m m m m m}{%
+  \nb@reg{#1}{\nbcodebox{cp}{#2}{#3}{#4}{#5}{#6}{#7}}}
+\NewDocumentCommand{\defplain}{m m m m m m m}{%
+  \nb@reg{#1}{\nbcodebox{plain}{#2}{#3}{#4}{#5}{#6}{#7}}}
+\NewDocumentCommand{\deftext}{m m m +m}{%
+  \nb@reg{#1}{\nbtextbox{#2}{#3}{#4}}}
+\newcommand{\useblock}[1]{%
+  \ifcsname nb@blk@#1\endcsname\csname nb@blk@#1\endcsname
+  \else\PackageError{notebook}{Unknown block #1}{}\fi}
+\newcommand{\forallblocks}[1]{\let\do#1\nb@ids}
+\makeatother
+
+\newsavebox{\nbT}
+\newsavebox{\nbU}
+\newlength{\nbW}
+\newcommand{\nbcodebox}[7]{%
+  \par\noindent
+  \sbox{\nbT}{{\small\bfseries #3}%
+    \if\relax\detokenize{#4}\relax\else
+      \hspace{0.45em}{\footnotesize\color{ink!55}$\bigO{#4}$}\fi}%
+  \sbox{\nbU}{\ttfamily\codesize #5}%
+  \setlength{\nbW}{\dimexpr\linewidth-12pt\relax}%
+  {\setlength{\fboxsep}{2pt}\colorbox{mc-#2!22}{%
+    \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+      \leftskip=4pt\rightskip=4pt\parfillskip=0pt plus 1fil
+      \strut\usebox{\nbT}%
+      \ifdim\dimexpr\wd\nbT+\wd\nbU+1.5em\relax>\nbW
+        \par\rightskip=4pt plus 1fil
+        {\ttfamily\codesize\color{ink!70}#5\strut}%
+      \else\hfill{\ttfamily\codesize\color{ink!70}#5}\fi\par}}}%
+  \par\nointerlineskip
+  \lstinputlisting[style=#1,backgroundcolor=\color{mc-#2!6},
+    frame=l,framerule=2pt,framesep=4pt,rulecolor=\color{mc-#2!70},
+    xleftmargin=6pt,emph={#6}]{#7}%
+  \par}
+\newcommand{\nbtextbox}[3]{%
+  \par\noindent
+  {\setlength{\fboxsep}{3pt}\colorbox{mc-#1!22}{%
+    \makebox[\dimexpr\linewidth-2\fboxsep\relax][l]{\strut
+      \hspace{3pt}\large\bfseries #2}}}%
+  \par\nointerlineskip\noindent
+  {\setlength{\fboxsep}{5pt}\colorbox{mc-#1!6}{%
+    \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+      \small\setlength{\parskip}{2.5pt}\raggedright #3}}}%
+  \par}
+\newcommand{\fitem}[2]{\hangindent=1.2em\hangafter=1
+  \textbf{#1}\ \ #2\par}
+\newcommand{\chip}[2]{{\setlength{\fboxsep}{2pt}%
+  \colorbox{mc-#1!22}{\strut\footnotesize #2}}\hspace{2pt}}
+
+\newlength{\nbcolsep}\setlength{\nbcolsep}{14pt}
+\newlength{\nbcolw}
+\setlength{\nbcolw}{\dimexpr(\textwidth-\nbcolsep)/2\relax}
+\newcommand{\nbblk}[1]{\par\nointerlineskip\vbox{\useblock{#1}}}
+\newcommand{\nbgap}{\par\vskip 6pt plus 1fil\relax}
+\newcommand{\nbwide}[1]{\par\vbox to\textheight{\hsize=\textwidth
+  \linewidth=\hsize\parindent=0pt\parskip=0pt\vskip0pt\relax
+  #1\par\vskip 0pt plus 1fil\relax}\newpage}
+\newcommand{\nbfix}{\par\vskip 6pt\relax}
+\newcommand{\nbcol}[1]{\vtop to\textheight{\hsize=\nbcolw
+  \linewidth=\hsize\parindent=0pt\parskip=0pt\vskip0pt\relax
+  #1\par\vskip 0pt plus 1fil\relax}}
+\newcommand{\nbpage}[2]{\par\vbox to\textheight{\hbox to\textwidth{%
+  \nbcol{#1}\hfil
+  \vtop to\textheight{\vskip0pt\hbox{\color{muted!35}%
+    \vrule width 0.4pt height\textheight}\vss}%
+  \hfil\nbcol{#2}}\vss}\newpage}
 
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Z}{\mathbb{Z}}
@@ -243,21 +281,3 @@
 \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 
-% Writing kit
-%   \topic{Dijkstra}[m \log n]      subsection with its complexity flushed right
-%   \begin{cpp} ... \end{cpp}       C++ snippet, \begin{cpp}[title=...] for extra box options
-%   \cppfile{code/dsu.cpp}          C++ snippet read from a file, paths relative to main.tex
-%   \cppfile[breakable]{...}        lets a long snippet split across columns
-%   \cppfile[title=gen.cpp,usage=gen 25 > in]{...}  title bar, usage on the right
-%   \cppfile[funcs={update,query}]{...}  colors the names this snippet defines
-%   \plainfile{code/x/build.txt}    same box for shell commands, no C++ colors
-%   \code|vector<int>|              inline C++
-%   theorem, lemma, corollary       blue boxes, \begin{theorem}[Fermat]
-%   definition, example, remark     teal, amber and muted
-%   \begin{notes}[Reading the ...]  grey box with a heading line, built for itemize
-%   \begin{pitfall} ... \end{pitfall}  red box for bugs that cost you a submission
-%   \bigO{n}, \floor{x}, \ceil{x}, \abs{x}, \lcm, \term{word}
-%
-% Limits measured for this layout: a code line holds 63 characters (safe
-% even if the code font has to grow to 8pt), a full column holds about 87
-% code lines, and the notebook may have at most 25 pages.

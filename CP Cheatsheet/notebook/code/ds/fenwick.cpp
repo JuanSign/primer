@@ -14,4 +14,10 @@ struct FenwickTree {
     return s;
   }
   ll query(int l, int r) { return sum(r) - sum(l); }
+  int lowerBound(ll s) { // min i, a[0..i] >= s, a[] >= 0
+    int p = 0;
+    for (int k = 1 << __lg(n | 1); k; k >>= 1)
+      if (p + k <= n && t[p + k] < s) p += k, s -= t[p];
+    return p;
+  }
 };

@@ -1,0 +1,58 @@
+\section{Data Structures}
+
+\topic{Lazy Segment Tree}[\log n]
+\cppfile[title=SegTree,usage={ranges are [l, r), 0-indexed},
+  funcs={SegTree,merge,apply,comp,build,put,push,update,query,set}]{code/ds/segtree.cpp}
+
+\topic{Fenwick Tree}[\log n]
+\cppfile[title=FenwickTree,usage={ranges are [l, r), 0-indexed},
+  funcs={FenwickTree,add,sum,query,lowerBound}]{code/ds/fenwick.cpp}
+
+\topic{Sparse Table}[1]
+\cppfile[title=SparseTable,usage={ranges are [l, r), 0-indexed},
+  funcs={SparseTable,op,query}]{code/ds/sparse.cpp}
+
+\topic{DSU with Rollback}[\log n]
+\cppfile[title=RollbackDSU,usage={rollback(t) undoes to time() == t},
+  funcs={RollbackDSU,find,size,time,join,rollback}]{code/ds/rollback-dsu.cpp}
+
+\topic{Ordered Set}[\log n]
+\cppfile[title=OrderedSet,usage={includes go at the top},
+  funcs={OrderedSet,find_by_order,order_of_key}]{code/ds/ordered-set.cpp}
+
+\topic{Implicit Treap}[\log n]
+\cppfile[title=Treap,usage={positions are [l, r), 0-indexed},
+  funcs={Treap,merge,apply,comp,make,put,push,pull,split,join,
+    insert,erase,on,update,reverse,query}]{code/ds/treap.cpp}
+
+\topic{Persistent Segment Tree}[\log n]
+\cppfile[title=PersistentSegTree,usage={every add returns a new root},
+  funcs={PersistentSegTree,add,query,kth}]{code/ds/persistent-segtree.cpp}
+
+\topic{Line Container}[\log n]
+\cppfile[title=LineContainer,usage={max kx + m, min: negate},
+  funcs={LineContainer,div,isect,add,query}]{code/ds/line-container.cpp}
+
+\topic{Li Chao Tree}[\log^2 n]
+\cppfile[title=LiChao,usage={min, x in [lo, hi), add on [x, y)},
+  funcs={LiChao,f,add,seg,query}]{code/ds/li-chao.cpp}
+
+\topic{Segment Tree Beats}[\log^2 n]
+\cppfile[title=Beats,usage={chmin on range, \{sum, max\}},
+  funcs={Beats,pull,build,put,push,chmin,query}]{code/ds/beats.cpp}
+
+\topic{2D Fenwick Tree}[\log n \log m]
+\cppfile[title=Fenwick2D,usage={rectangle [x1, x2) x [y1, y2)},
+  funcs={Fenwick2D,add,sum,query}]{code/ds/fenwick-2d.cpp}
+
+\topic{Binary Trie}[B]
+\cppfile[title=XorTrie,usage={add(x, -1) removes, set non-empty},
+  funcs={XorTrie,add,maxXor}]{code/ds/xor-trie.cpp}
+
+\topic{Link-Cut Tree}[\log n]
+\cppfile[title=LinkCut,usage={vertices 1..n, path sums},
+  funcs={LinkCut,root,pull,push,rot,splay,access,makeRoot,findRoot,link,cut,query,set}]{code/ds/link-cut.cpp}
+
+\topic{Hash Map}[1]
+\cppfile[title=SplitMix,usage={anti-hack hash},
+  funcs={SplitMix}]{code/ds/hash-map.cpp}

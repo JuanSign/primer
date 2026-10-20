@@ -1,0 +1,363 @@
+\defcode{template}{contest}{Template}{}
+  {}
+  {rep,all,sz,dbg,main}{code/contest/template.cpp}
+\defplain{bwin}{contest}{Build (Windows)}{}
+  {b A \&\& A < in}
+  {}{code/contest/b.bat}
+\defplain{b}{contest}{Build (Linux)}{}
+  {bash b.sh A \&\& ./A < in}
+  {}{code/contest/b.sh}
+\defplain{stresswin}{contest}{Stress Test (Windows)}{}
+  {stress A [check]}
+  {}{code/contest/stress.bat}
+\defplain{stress}{contest}{Stress Test (Linux)}{}
+  {bash stress.sh A [check]}
+  {}{code/contest/stress.sh}
+\defcode{gen}{contest}{Random Generator}{}
+  {cout {<}{<} rng(L, R)}
+  {rng}{code/contest/gen.cpp}
+\defcode{check}{contest}{Checker}{}
+  {main of a template copy}
+  {main}{code/contest/check.cpp}
+\defplain{templatepy}{contest}{Python Template}{}
+  {big integers, quick math}
+  {}{code/misc/template.py}
+\defcode{segtree}{ds}{Lazy Segment Tree}{\log n}
+  {ranges are [l, r), 0-indexed}
+  {SegTree,merge,apply,comp,build,put,push,update,query,set}{code/ds/segtree.cpp}
+\defcode{fenwick}{ds}{Fenwick Tree}{\log n}
+  {ranges are [l, r), 0-indexed}
+  {FenwickTree,add,sum,query,lowerBound}{code/ds/fenwick.cpp}
+\defcode{sparse}{ds}{Sparse Table}{1}
+  {ranges are [l, r), 0-indexed}
+  {SparseTable,op,query}{code/ds/sparse.cpp}
+\defcode{rollbackdsu}{ds}{DSU with Rollback}{\log n}
+  {rollback(t) undoes to time() == t}
+  {RollbackDSU,find,size,time,join,rollback}{code/ds/rollback-dsu.cpp}
+\defcode{orderedset}{ds}{Ordered Set}{\log n}
+  {includes go at the top}
+  {OrderedSet,find_by_order,order_of_key}{code/ds/ordered-set.cpp}
+\defcode{treap}{ds}{Implicit Treap}{\log n}
+  {positions are [l, r), 0-indexed}
+  {Treap,merge,apply,comp,make,put,push,pull,split,join,insert,erase,on,update,reverse,query}{code/ds/treap.cpp}
+\defcode{persistentsegtree}{ds}{Persistent Segment Tree}{\log n}
+  {every add returns a new root}
+  {PersistentSegTree,add,query,kth}{code/ds/persistent-segtree.cpp}
+\defcode{linecontainer}{ds}{Line Container}{\log n}
+  {max kx + m, min: negate}
+  {LineContainer,div,isect,add,query}{code/ds/line-container.cpp}
+\defcode{lichao}{ds}{Li Chao Tree}{\log^2 n}
+  {min, x in [lo, hi), add on [x, y)}
+  {LiChao,f,add,seg,query}{code/ds/li-chao.cpp}
+\defcode{beats}{ds}{Segment Tree Beats}{\log^2 n}
+  {chmin on range, \{sum, max\}}
+  {Beats,pull,build,put,push,chmin,query}{code/ds/beats.cpp}
+\defcode{fenwick2d}{ds}{2D Fenwick Tree}{\log n \log m}
+  {rectangle [x1, x2) x [y1, y2)}
+  {Fenwick2D,add,sum,query}{code/ds/fenwick-2d.cpp}
+\defcode{xortrie}{ds}{Binary Trie}{B}
+  {add(x, -1) removes, set non-empty}
+  {XorTrie,add,maxXor}{code/ds/xor-trie.cpp}
+\defcode{linkcut}{ds}{Link-Cut Tree}{\log n}
+  {vertices 1..n, path sums}
+  {LinkCut,root,pull,push,rot,splay,access,makeRoot,findRoot,link,cut,query,set}{code/ds/link-cut.cpp}
+\defcode{hashmap}{ds}{Hash Map}{1}
+  {anti-hack hash}
+  {SplitMix}{code/ds/hash-map.cpp}
+\defcode{modular}{nt}{Modular Arithmetic}{\log e}
+  {b\textasciicircum{}e mod m, Mint mod MOD}
+  {modpow,Mint,inv}{code/nt/modular.cpp}
+\defcode{euclid}{nt}{Extended Euclid, CRT}{\log n}
+  {crt: \{x, lcm\}, \{-1, -1\} if none}
+  {euclid,modinv,crt}{code/nt/euclid.cpp}
+\defcode{sieve}{nt}{Linear Sieve}{N}
+  {lp = smallest prime factor}
+  {sieve}{code/nt/sieve.cpp}
+\defcode{pollard}{nt}{Miller-Rabin, Pollard Rho}{n^{1/4}}
+  {any n < 2\textasciicircum{}64}
+  {mulmod,powmod,isPrime,pollard,factor}{code/nt/pollard.cpp}
+\defcode{discretelog}{nt}{Discrete Log}{\sqrt{m}}
+  {min x > 0, a\textasciicircum{}x = b mod m, or -1}
+  {modLog}{code/nt/discrete-log.cpp}
+\defcode{primitiveroot}{nt}{Primitive Root}{\sqrt{p}}
+  {p prime, needs modpow}
+  {primitiveRoot}{code/nt/primitive-root.cpp}
+\defcode{modsqrt}{nt}{Modular Square Root}{\log^2 p}
+  {x\textasciicircum{}2 = a mod p, or -1}
+  {modSqrt}{code/nt/mod-sqrt.cpp}
+\defcode{floorsum}{nt}{Floor Sum}{\log m}
+  {sum floor((ai + b) / m), i < n}
+  {floorSum}{code/nt/floor-sum.cpp}
+\defcode{primecount}{nt}{Prime Counting}{n^{3/4}}
+  {pi(1e11) in about 1 s}
+  {primeCount}{code/nt/prime-count.cpp}
+\defcode{dusieve}{nt}{Du's Sieve}{n^{2/3}}
+  {pre = prefix phi up to n\textasciicircum{}(2/3)}
+  {phiSum}{code/nt/du-sieve.cpp}
+\defcode{binomial}{comb}{Binomials, Lucas}{n}
+  {needs modpow, MOD}
+  {Binom,C,lucas}{code/comb/binomial.cpp}
+\defcode{partitions}{comb}{Partition Numbers}{n\sqrt{n}}
+  {p[0..n] mod MOD}
+  {partitions}{code/comb/partitions.cpp}
+\defcode{ntt}{alg}{NTT}{n \log n}
+  {mod 998244353, needs modpow}
+  {ntt,conv}{code/alg/ntt.cpp}
+\defcode{fft}{alg}{FFT, Arbitrary Mod Convolution}{n \log n}
+  {convMod<M>: any M < 2\textasciicircum{}31}
+  {fft,conv,convMod}{code/alg/fft.cpp}
+\defcode{poly}{alg}{Polynomial Inverse, Log, Exp}{n \log n}
+  {first n terms, needs NTT}
+  {inv,deriv,integ,log,exp}{code/alg/poly.cpp}
+\defcode{berlekampmassey}{alg}{Berlekamp-Massey}{n^2 + n^2 \log k}
+  {give 2d terms, k-th term}
+  {berlekampMassey,linearRec}{code/alg/berlekamp-massey.cpp}
+\defcode{matrix}{alg}{Matrix Power}{n^3 \log e}
+  {mod MOD}
+  {mul,mpow}{code/alg/matrix.cpp}
+\defcode{gauss}{alg}{Gaussian Elimination}{n^3}
+  {rank, -1 if none, x by ref}
+  {solveLinear}{code/alg/gauss.cpp}
+\defcode{gaussmod}{alg}{RREF mod p, Determinant}{}
+  {rref mod MOD, det any mod}
+  {rref,det}{code/alg/gauss-mod.cpp}
+\defcode{xor}{alg}{XOR Basis, Linear Systems mod 2}{n \cdot B}
+  {rhs in column m}
+  {XorBasis,insert,maxXor,gaussXor}{code/alg/xor.cpp}
+\defcode{fwht}{alg}{Walsh-Hadamard}{n \log n}
+  {t: 0 AND, 1 OR, 2 XOR}
+  {fwht,conv}{code/alg/fwht.cpp}
+\defcode{simplex}{alg}{Simplex}{\text{exp}}
+  {max cx, Ax <= b, x >= 0}
+  {LPSolver,pivot,simplex,solve}{code/alg/simplex.cpp}
+\defcode{lagrange}{alg}{Lagrange Interpolation}{n \log p}
+  {y[i] = f(i), returns f(x)}
+  {lagrange}{code/alg/lagrange.cpp}
+\defcode{numeric}{alg}{Integration, Ternary Search}{}
+  {n even, f unimodal}
+  {simpson,ternary}{code/alg/numeric.cpp}
+\defcode{lca}{graph}{LCA}{\log n}
+  {k-th ancestor: jump(v, k)}
+  {LCA,dfs,anc,lca,jump,dist}{code/graph/lca.cpp}
+\defcode{hld}{graph}{Heavy-Light Decomposition}{\log^2 n}
+  {f(l, r) on pos ranges, e = 1: edges}
+  {HLD,dfs,build,path,lca,subtree}{code/graph/hld.cpp}
+\defcode{centroid}{graph}{Centroid Decomposition}{n \log n}
+  {par = centroid tree}
+  {Centroid,size,build}{code/graph/centroid.cpp}
+\defcode{virtualtree}{graph}{Virtual Tree}{k \log n}
+  {\{parent, v\}, root has -1}
+  {virtualTree}{code/graph/virtual-tree.cpp}
+\defcode{treehash}{graph}{Tree Isomorphism}{n \log n}
+  {same id iff isomorphic as rooted}
+  {treeHash}{code/graph/tree-hash.cpp}
+\defcode{scc}{graph}{Strongly Connected Components}{n + m}
+  {comp ids in reverse topo order}
+  {SCC,dfs}{code/graph/scc.cpp}
+\defcode{twosat}{graph}{2-SAT}{n + m}
+  {x = 2i, not x = 2i+1, needs SCC}
+  {TwoSat,either,imply,solve}{code/graph/two-sat.cpp}
+\defcode{biconnected}{graph}{Bridges, Cut Vertices, Blocks}{n + m}
+  {blocks = vertex BCCs}
+  {Biconnected,addEdge,run,dfs,twoEdge}{code/graph/biconnected.cpp}
+\defcode{euler}{graph}{Euler Path}{n + m}
+  {g[v] = \{to, id\}, \{\} if none}
+  {euler}{code/graph/euler.cpp}
+\defcode{shortest}{graph}{Dijkstra, Floyd-Warshall, Toposort}{m \log n}
+  {floyd: inf = LLONG\_MAX/4}
+  {dijkstra,floyd,topoSort}{code/graph/shortest.cpp}
+\defcode{bellmanford}{graph}{Bellman-Ford}{nm}
+  {\{a, b, w\}, -INF on neg cycle}
+  {bellmanFord}{code/graph/bellman-ford.cpp}
+\defcode{dominator}{graph}{Dominator Tree}{m \log n}
+  {idom, root to itself, -1 unreachable}
+  {dominators}{code/graph/dominator.cpp}
+\defcode{directedmst}{graph}{Directed MST}{m \log m}
+  {\{cost, parent\}, -1 if none, needs RollbackDSU}
+  {merge,pop,dmst}{code/graph/directed-mst.cpp}
+\defcode{dynamicconnectivity}{graph}{Offline Dynamic Connectivity}{q \log q \log n}
+  {toggle(i, a, b) at time i, f(i) sees before i}
+  {DynCon,ins,toggle,run}{code/graph/dynamic-connectivity.cpp}
+\defcode{cliques}{graph}{Maximal Cliques}{3^{n/3}}
+  {f(R) on every maximal clique}
+  {cliques}{code/graph/cliques.cpp}
+\defcode{dinic}{graph}{Dinic}{V^2 E}
+  {calc(s, t) = max flow}
+  {Dinic,addEdge,dfs,calc,leftOfMinCut}{code/graph/dinic.cpp}
+\defcode{mcmf}{graph}{Min Cost Max Flow}{F E \log V}
+  {\{flow, cost\}, no neg cycles}
+  {MCMF,addEdge,path,calc}{code/graph/mcmf.cpp}
+\defcode{gomoryhu}{graph}{Gomory-Hu Tree}{V \cdot \mathrm{flow}}
+  {min cut(a, b) = min on tree path}
+  {gomoryHu}{code/graph/gomory-hu.cpp}
+\defcode{mincut}{graph}{Global Min Cut}{V^3}
+  {\{cut, one side\}}
+  {globalMinCut}{code/graph/min-cut.cpp}
+\defcode{hopcroftkarp}{graph}{Hopcroft-Karp}{E\sqrt{V}}
+  {l[a] = match of left a}
+  {HopcroftKarp,addEdge,bfs,dfs,run}{code/graph/hopcroft-karp.cpp}
+\defcode{hungarian}{graph}{Hungarian}{n^2 m}
+  {n <= m, \{min cost, match\}}
+  {hungarian}{code/graph/hungarian.cpp}
+\defcode{blossom}{graph}{General Matching}{V^3}
+  {mt[v] = partner or -1}
+  {Blossom,addEdge,lca,mark,find,run}{code/graph/blossom.cpp}
+\defcode{kmp}{string}{Prefix Function, KMP}{n}
+  {match = start indices}
+  {pi,match}{code/string/kmp.cpp}
+\defcode{z}{string}{Z-Function}{n}
+  {z[i] = lcp(s, s[i..]), z[0] = 0}
+  {Z}{code/string/z.cpp}
+\defcode{manacher}{string}{Manacher}{n}
+  {[0]: even, [1]: odd radius}
+  {manacher}{code/string/manacher.cpp}
+\defcode{hash}{string}{Hashing}{n}
+  {random B in [256, M), get [l, r)}
+  {mul,Hash,get}{code/string/hash.cpp}
+\defcode{suffixarray}{string}{Suffix Array}{n \log n}
+  {sa[0] = n, lcp[i] = lcp(i-1, i)}
+  {SuffixArray}{code/string/suffix-array.cpp}
+\defcode{ahocorasick}{string}{Aho-Corasick}{n \cdot A}
+  {out[v] = matches ending at v}
+  {AhoCorasick,add,build}{code/string/aho-corasick.cpp}
+\defcode{suffixautomaton}{string}{Suffix Automaton}{n \cdot A}
+  {distinct = sum len - len[link]}
+  {SAM,add}{code/string/suffix-automaton.cpp}
+\defcode{eertree}{string}{Palindromic Tree}{n \cdot A}
+  {node 0: len -1, node 1: empty}
+  {Eertree,get,add}{code/string/eertree.cpp}
+\defcode{lyndon}{string}{Lyndon Factorization, Min Rotation}{n}
+  {starts of Lyndon words}
+  {duval,minRotation}{code/string/lyndon.cpp}
+\defcode{point}{geo}{Point}{}
+  {T = ll when exact}
+  {sgn,Point,dot,cross,dist2,dist,angle,unit,perp,normal,rotate}{code/geo/point.cpp}
+\defcode{lines}{geo}{Lines and Segments}{}
+  {lineInter: \{1, p\}, 0 par, -1 same}
+  {sideOf,onSegment,lineDist,segDist,lineInter,segInter,project,reflect}{code/geo/lines.cpp}
+\defcode{polygon}{geo}{Polygons}{n}
+  {cut keeps the right of s->e}
+  {polygonArea2,inPolygon,polygonCenter,polygonCut}{code/geo/polygon.cpp}
+\defcode{hull}{geo}{Convex Hull}{n \log n}
+  {CCW, no collinear}
+  {convexHull,hullDiameter,inHull}{code/geo/hull.cpp}
+\defcode{closest}{geo}{Closest Pair}{n \log n}
+  {n >= 2}
+  {closest}{code/geo/closest.cpp}
+\defcode{circle}{geo}{Circles}{}
+  {r2 < 0: inner tangents}
+  {circleLine,circleInter,tangents,ccCenter,mec,circlePoly}{code/geo/circle.cpp}
+\defcode{halfplane}{geo}{Half-Plane Intersection}{n \log n}
+  {keeps left of s->e, add a box}
+  {HP,out,inter,hpi}{code/geo/half-plane.cpp}
+\defcode{angleminkowski}{geo}{Angle Sort, Minkowski Sum}{n \log n}
+  {convex CCW inputs}
+  {half,angleLess,minkowski}{code/geo/angle-minkowski.cpp}
+\defcode{polygonunion}{geo}{Polygon Union}{n^2 \log n}
+  {CCW polygons}
+  {rat,polyUnion}{code/geo/polygon-union.cpp}
+\defcode{point3d}{geo}{3D Point, 3D Hull}{n^2}
+  {no 4 coplanar, faces outward}
+  {Point3D,dot,cross,dist2,dist,unit,hull3d,volume}{code/geo/point3d.cpp}
+\defcode{dnc}{dp}{Divide and Conquer Optimization}{kn \log n}
+  {cur[i] = min prv[k] + cost(k, i), k < i}
+  {solve}{code/dp/dnc.cpp}
+\defcode{knuth}{dp}{Knuth Optimization}{n^2}
+  {dp[i][j] = min dp[i][k] + dp[k][j] + C}
+  {knuth}{code/dp/knuth.cpp}
+\defcode{sos}{dp}{Sum over Subsets}{B \cdot 2^B}
+  {f[m] = sum over subsets}
+  {sosSub,sosSup}{code/dp/sos.cpp}
+\defcode{lis}{dp}{Longest Increasing Subsequence}{n \log n}
+  {strict, returns indices}
+  {lis}{code/dp/lis.cpp}
+\defcode{steiner}{dp}{Steiner Tree}{3^k n + 2^k m \log n}
+  {min tree joining terminals t}
+  {steiner}{code/dp/steiner.cpp}
+\defcode{digitdp}{dp}{Digit DP}{\text{digits} \cdot \text{states} \cdot 10}
+  {x in [0, N] with digit sum \% K == 0}
+  {go,count}{code/dp/digit-dp.cpp}
+\defcode{mo}{misc}{Mo's Algorithm}{n\sqrt{q}}
+  {[l, r), blk about n / sqrt(q)}
+  {mo,add,del,calc}{code/misc/mo.cpp}
+\defcode{fastio}{misc}{Fast Input}{}
+  {reads signed integers}
+  {gc,readInt}{code/misc/fast-io.cpp}
+\defcode{tricks}{misc}{Tricks}{}
+  {pragmas go above includes}
+  {str}{code/misc/tricks.cpp}
+\defcode{intervalcontainer}{misc}{Interval Container}{\log n}
+  {disjoint [l, r) in set<pii>}
+  {addInterval,removeInterval}{code/misc/interval-container.cpp}
+\deftext{legend}{contest}{Colors}{%
+\chip{contest}{Contest}\chip{ds}{Data Structures}\chip{nt}{Number Theory}\chip{comb}{Combinatorics}\chip{alg}{Algebra}
+\chip{graph}{Graphs}\chip{string}{Strings}\chip{geo}{Geometry}\chip{dp}{DP}\chip{misc}{Misc}}
+\deftext{ntformulas}{nt}{Number Theory Formulas}{%
+\fitem{Euler}{$a^{\varphi(m)} \equiv 1$ if $\gcd(a, m) = 1$;\ \ $a^e \equiv a^{(e \bmod \varphi(m)) + \varphi(m)}$ for $e \ge \log_2 m$}
+\fitem{Wilson}{$(p - 1)! \equiv -1 \pmod p$}
+\fitem{M\"obius}{$g(n) = \sum_{d \mid n} f(d) \iff f(n) = \sum_{d \mid n} \mu(d)\, g(n/d)$}
+\fitem{}{$\sum_{d \mid n} \mu(d) = [n = 1]$,\ \ $\sum_{d \mid n} \varphi(d) = n$,\ \ $\sum_{i \le n} \gcd(i, n) = \sum_{d \mid n} d\,\varphi(n/d)$}
+\fitem{Coprime pairs}{$\#\{a, b \le n : \gcd(a, b) = 1\} = \sum_d \mu(d) \lfloor n/d \rfloor^2$}
+\fitem{Diophantine}{$ax + by = c$ iff $g \mid c$: $x = x_0 \frac{c}{g} + k\frac{b}{g}$, $y = y_0 \frac{c}{g} - k\frac{a}{g}$}
+\fitem{Frobenius}{largest non-representable, $\gcd(a, b) = 1$: $ab - a - b$}
+\fitem{Legendre}{$v_p(n!) = \sum_i \lfloor n / p^i \rfloor$}
+\fitem{Kummer}{$v_p\binom{n}{k}$ = carries when adding $k$ and $n - k$ in base $p$}
+\fitem{Primitive root}{exists mod $1, 2, 4, p^k, 2p^k$}
+\fitem{Pythagorean}{$k(m^2 - n^2),\ 2kmn,\ k(m^2 + n^2)$, $m > n$ coprime, not both odd}
+\fitem{Divisors}{max 1344 for $n \le 10^9$, 103680 for $n \le 10^{18}$}
+\fitem{Primes}{$10^9 + 7$, $10^9 + 9$, $10^{18} + 3$}}
+\deftext{combformulas}{comb}{Combinatorics Formulas}{%
+\fitem{Catalan}{$C_n = \frac{1}{n+1}\binom{2n}{n} = \sum_i C_i C_{n-1-i}$:\ 1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862}
+\fitem{Ballot}{paths to $(n, m)$, $m \le n$, never above $y = x$: $\binom{n+m}{n} - \binom{n+m}{n+1}$}
+\fitem{Stirling 2nd}{$S(n, k) = k\,S(n-1, k) + S(n-1, k-1) = \frac{1}{k!}\sum_j (-1)^{k-j}\binom{k}{j} j^n$}
+\fitem{Stirling 1st}{(cycles) $c(n, k) = (n-1)\,c(n-1, k) + c(n-1, k-1)$}
+\fitem{Bell}{$B_{n+1} = \sum_k \binom{n}{k} B_k$:\ 1, 1, 2, 5, 15, 52, 203, 877, 4140}
+\fitem{Derangements}{$D_n = (n-1)(D_{n-1} + D_{n-2})$:\ 1, 0, 1, 2, 9, 44, 265}
+\fitem{Eulerian}{(ascents) $A(n, k) = (k+1)A(n-1, k) + (n-k)A(n-1, k-1)$}
+\fitem{Partitions}{$p(n)$:\ 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42}
+\fitem{Stars and bars}{$x_1 + \dots + x_k = n$, $x_i \ge 0$: $\binom{n+k-1}{k-1}$}
+\fitem{Vandermonde}{$\sum_i \binom{m}{i}\binom{n}{k-i} = \binom{m+n}{k}$}
+\fitem{Hockey stick}{$\sum_{i=r}^{n} \binom{i}{r} = \binom{n+1}{r+1}$}
+\fitem{Burnside}{orbits $= \frac{1}{|G|}\sum_g |\mathrm{Fix}(g)|$;\ necklaces $\frac{1}{n}\sum_{d \mid n}\varphi(d)\,k^{n/d}$}
+\fitem{Trees}{labeled $n^{n-2}$;\ forests rooted at $k$ given vertices $k\,n^{n-k-1}$;\ degrees $d_i$: $\frac{(n-2)!}{\prod (d_i - 1)!}$}
+\fitem{Matrix-tree}{spanning trees = any cofactor of $D - A$}
+\fitem{Fibonacci}{$F_{n+m} = F_m F_{n+1} + F_{m-1} F_n$,\ \ $\gcd(F_m, F_n) = F_{\gcd(m, n)}$}
+\fitem{Incl.-excl.}{$|\bigcup A_i| = \sum_{S \ne \emptyset} (-1)^{|S|+1} |\bigcap_{i \in S} A_i|$}
+\fitem{Surjections}{$n \to k$: $\sum_j (-1)^j \binom{k}{j} (k-j)^n$}}
+\deftext{games}{comb}{Game Theory}{%
+\fitem{Sprague-Grundy}{$g(s) = \mathrm{mex}\{g(t) : s \to t\}$, lose iff $g = 0$, sum of games $\bigoplus g_i$}
+\fitem{Nim}{win iff $\bigoplus a_i \ne 0$;\ move $a_i \to a_i \oplus X$}
+\fitem{Mis\`ere Nim}{all piles $\le 1$: win iff the pile count is even;\ else as Nim}
+\fitem{Bash}{take $1..k$: $g(n) = n \bmod (k+1)$}
+\fitem{Staircase Nim}{step $i \to i - 1$: Nim on the odd steps}
+\fitem{Moore's Nim$_k$}{up to $k$ piles: lose iff each bit count $\equiv 0 \pmod{k+1}$}
+\fitem{Wythoff}{lose at $(\lfloor k\varphi \rfloor, \lfloor k\varphi \rfloor + k)$, $\varphi = \frac{1+\sqrt5}{2}$}
+\fitem{Hackenbush}{tree: $g(v) = \bigoplus_{c} (g(c) + 1)$}
+\fitem{Subtraction}{brute force $g$, then find its period}}
+\deftext{mathformulas}{alg}{Math Formulas}{%
+\fitem{Sums}{$\sum i = \frac{n(n+1)}{2}$,\ $\sum i^2 = \frac{n(n+1)(2n+1)}{6}$,\ $\sum i^3 = \frac{n^2(n+1)^2}{4}$}
+\fitem{Geometric}{$\sum_{i=0}^{n} x^i = \frac{x^{n+1} - 1}{x - 1}$,\ $\sum_{i \ge 1} i x^i = \frac{x}{(1-x)^2}$,\ $H_n \approx \ln n + 0.5772$}
+\fitem{Trig}{$\sin(a \pm b) = \sin a\cos b \pm \cos a\sin b$}
+\fitem{}{$\cos(a \pm b) = \cos a\cos b \mp \sin a\sin b$,\ \ $\tan(a + b) = \frac{\tan a + \tan b}{1 - \tan a\tan b}$}
+\fitem{}{$\sin a + \sin b = 2\sin\frac{a+b}{2}\cos\frac{a-b}{2}$,\ \ $\cos a + \cos b = 2\cos\frac{a+b}{2}\cos\frac{a-b}{2}$}
+\fitem{Quadratic}{$q = -\frac{1}{2}\left(b + \mathrm{sgn}(b)\sqrt{b^2 - 4ac}\right)$, roots $\frac{q}{a}$ and $\frac{c}{q}$}
+\fitem{Calculus}{$(\arctan x)' = \frac{1}{1+x^2}$,\ $(\arcsin x)' = \frac{1}{\sqrt{1-x^2}}$,\ $\int \ln x = x\ln x - x$}
+\fitem{}{$\int x e^{ax} = \frac{e^{ax}}{a^2}(ax - 1)$,\ \ $\int_0^\infty e^{-x^2} = \frac{\sqrt\pi}{2}$}
+\fitem{Expectation}{$E[X + Y] = E[X] + E[Y]$,\ $\mathrm{Var} X = E[X^2] - E[X]^2$,\ coupon collector $nH_n$}
+\begin{tabular}{@{}lll@{}}
+\textbf{Distribution} & \textbf{Mean} & \textbf{Variance} \\
+Binomial$(n, p)$ & $np$ & $np(1-p)$ \\
+Geometric (trials) & $1/p$ & $(1-p)/p^2$ \\
+Poisson$(\lambda)$ & $\lambda$ & $\lambda$ \\
+Uniform$[a, b]$ & $(a+b)/2$ & $(b-a)^2/12$ \\
+Exponential$(\lambda)$ & $1/\lambda$ & $1/\lambda^2$
+\end{tabular}}
+\deftext{geoformulas}{geo}{Geometry Formulas}{%
+\fitem{Triangle}{$A = \frac12 ab\sin C = \sqrt{s(s-a)(s-b)(s-c)}$,\ $r = \frac{A}{s}$,\ $R = \frac{abc}{4A}$}
+\fitem{}{$\frac{a}{\sin A} = 2R$,\ \ $c^2 = a^2 + b^2 - 2ab\cos C$,\ \ $m_a = \frac12\sqrt{2b^2 + 2c^2 - a^2}$}
+\fitem{Pick}{$A = I + \frac{B}{2} - 1$\qquad \textbf{Euler}\ \ $V - E + F = 2$}
+\fitem{Sphere}{$V = \frac43\pi r^3$,\ $S = 4\pi r^2$;\ cap of height $h$: $V = \frac{\pi h^2 (3r - h)}{3}$,\ $S = 2\pi r h$}
+\fitem{Cone}{$V = \frac13 \pi r^2 h$}
+\fitem{Great circle}{$d = r\arccos(\sin\varphi_1\sin\varphi_2 + \cos\varphi_1\cos\varphi_2\cos\Delta\lambda)$}
+\fitem{Rotation}{$(x\cos\theta - y\sin\theta,\ x\sin\theta + y\cos\theta)$}
+\fitem{Manhattan}{to Chebyshev: $(x + y,\ x - y)$}}
