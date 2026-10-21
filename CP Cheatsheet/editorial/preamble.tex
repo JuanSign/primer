@@ -15,7 +15,7 @@
 \usepackage{titletoc}
 \usepackage{fancyhdr}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,calc,positioning,decorations.pathreplacing}
+\usetikzlibrary{arrows.meta,calc,positioning,decorations.pathreplacing,patterns.meta}
 \usepackage{booktabs}
 \usepackage{listings}
 \usepackage[most]{tcolorbox}
@@ -69,11 +69,12 @@
   {}{0pt}{}[.]
 \titlespacing*{\section}{0pt}{18pt}{8pt}
 \newcommand{\sectionbreak}{\clearpage}
+\newcommand{\planned}{{\small\itshape\color{muted}To be written.\par}}
 \titlespacing*{\subsection}{0pt}{12pt}{4pt}
 \titlespacing*{\subsubsection}{0pt}{6pt}{0.5em}
 
 \titlecontents{section}[1.6em]
-  {\addvspace{4pt}\bfseries}
+  {\filbreak\addvspace{4pt}\bfseries}
   {\contentslabel[\textcolor{thmcolor}{\thecontentslabel}]{1.6em}}
   {\hspace*{-1.6em}}
   {\hfill\contentspage}
@@ -229,13 +230,16 @@
   pa/.style={fill=thmcolor!18},
   pb/.style={fill=excolor!25},
   pc/.style={fill=muted!22},
+  part/.style={preaction={fill=white},
+    pattern={Lines[angle=45,distance=3pt,line width=0.7pt]},
+    pattern color=excolor!35},
   hot/.style={draw=warncolor,very thick},
   slot/.style={tn,dashed,draw=muted,text=muted},
   new/.style={draw=defcolor,thick,densely dotted}
 }
 \NewDocumentCommand{\brick}{O{} m m m m}{%
-  \draw[draw=ink!55,fill=white,#1] (#2 - 0.5, 1.2 * #4 - 0.5)
-    rectangle (#3 - 0.5, 1.2 * #4 + 0.5);
+  \draw[draw=ink!55,fill=white,#1] (#2 - 0.4, 1.2 * #4 - 0.5)
+    rectangle (#3 - 0.6, 1.2 * #4 + 0.5);
   \node[font=\small] at ({(#2 + #3) / 2 - 0.5}, 1.2 * #4) {#5};}
 
 \NewDocumentCommand{\topic}{m !o}{%
