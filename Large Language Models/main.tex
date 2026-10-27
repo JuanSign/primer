@@ -1,0 +1,33 @@
+\documentclass[11pt,a4paper,oneside,openany]{book}
+\input{preamble}
+
+\begin{document}
+
+\frontmatter
+
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+  \centering
+  \vspace*{0.22\textheight}
+  {\headfont\bfseries\fontsize{34}{44}\selectfont {\color{thmcolor}L}arge\\{\color{thmcolor}L}anguage\\{\color{thmcolor}M}odels\par}
+  \vspace{14pt}
+  {\color{thmcolor}\rule{0.35\textwidth}{1.2pt}\par}
+  \vspace{12pt}
+  {\Large\itshape \booksubtitle\par}
+  \vfill
+  {\large \bookauthor\par}
+  \vspace{6pt}
+  {\fontsize{10.5}{13}\selectfont\color{muted}\textit{Inventas vitam iuvat excoluisse per artes.}\\It is good to have made life better through the arts we invented.\par}
+  \vspace{4pt}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+{\hypersetup{linkcolor=ink}\tableofcontents}
+
+\subfile{chapters/00-preface}
+
+\mainmatter
+
+\backmatter
+
+\end{document}
